@@ -21,14 +21,12 @@ export function Home() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    console.log('=== CHARGEMENT HOME ===')
     fetchNewsPosts()
-    console.log('Chargement des actualités...')
   }, [])
 
   const fetchNewsPosts = async () => {
-    console.log('Début fetchNewsPosts')
-    console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL)
-    console.log('Supabase Key exists:', !!import.meta.env.VITE_SUPABASE_ANON_KEY)
+    console.log('=== RÉCUPÉRATION ACTUALITÉS ===')
     try {
       const { data, error } = await supabase
         .from('news')
@@ -37,14 +35,14 @@ export function Home() {
         .order('created_at', { ascending: false })
 
       if (error) {
-        console.error('Erreur Supabase:', error)
+        console.error('❌ Erreur actualités:', error)
         throw error
       }
-      console.log('Actualités récupérées:', data)
+      console.log('✅ Actualités récupérées:', data?.length || 0, 'articles')
       setNewsPosts(data || [])
     } catch (error) {
       console.error('Error fetching news posts:', error)
-      console.error('Détails de l\'erreur:', error)
+      console.error('❌ Détails erreur actualités:', error)
     } finally {
       setLoading(false)
     }

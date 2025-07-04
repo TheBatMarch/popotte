@@ -34,8 +34,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    console.log('=== INITIALISATION AUTH ===')
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Session initiale:', session ? 'Connecté' : 'Non connecté')
       setUser(session?.user ?? null)
       if (session?.user) {
         fetchProfile(session.user.id)
@@ -47,6 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
+        console.log('Changement auth:', _event, session ? 'Connecté' : 'Déconnecté')
         setUser(session?.user ?? null)
         if (session?.user) {
           await fetchProfile(session.user.id)
@@ -61,7 +64,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const fetchProfile = async (userId: string) => {
-    console.log('Récupération du profil pour:', userId)
+    console.log('=== RÉCUPÉRATION PROFIL ===')
+    console.log('User ID:', userId)
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -70,11 +74,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single()
 
       if (error) throw error
-      console.log('Profil récupéré:', data)
+      console.log('✅ Profil récupéré:', data)
       setProfile(data)
     } catch (error) {
       console.error('Error fetching profile:', error)
-      alert('Erreur lors du chargement du profil: ' + error.message)
+      console.error('❌ Erreur profil:', error)
     } finally {
       setLoading(false)
     }

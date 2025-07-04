@@ -26,14 +26,15 @@ export function Dettes() {
 
   useEffect(() => {
     if (user) {
+      console.log('=== CHARGEMENT DETTES ===')
+      console.log('User ID:', user.id)
       fetchOrders()
-      console.log('Chargement des commandes pour:', user.id)
     }
   }, [user])
 
   const fetchOrders = async () => {
     if (!user) return
-    console.log('Début fetchOrders pour user:', user.id)
+    console.log('=== RÉCUPÉRATION COMMANDES ===')
 
     try {
       const { data, error } = await supabase
@@ -54,11 +55,11 @@ export function Dettes() {
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      console.log('Commandes récupérées:', data)
+      console.log('✅ Commandes récupérées:', data?.length || 0, 'commandes')
       setOrders(data || [])
     } catch (error) {
       console.error('Error fetching orders:', error)
-      alert('Erreur lors du chargement des commandes: ' + error.message)
+      console.error('❌ Erreur commandes:', error)
     } finally {
       setLoading(false)
     }

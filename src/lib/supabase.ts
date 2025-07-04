@@ -3,11 +3,18 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
+console.log('=== CONFIGURATION SUPABASE ===')
+console.log('URL:', supabaseUrl)
+console.log('Key présente:', !!supabaseAnonKey)
+console.log('Key (premiers caractères):', supabaseAnonKey?.substring(0, 20) + '...')
+
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Variables d\'environnement Supabase manquantes:', {
-    url: !!supabaseUrl,
-    key: !!supabaseAnonKey
-  })
+  console.error('❌ ERREUR: Variables d\'environnement Supabase manquantes!')
+  console.error('VITE_SUPABASE_URL:', supabaseUrl)
+  console.error('VITE_SUPABASE_ANON_KEY présente:', !!supabaseAnonKey)
+  alert('ERREUR: Variables Supabase non configurées. Cliquez sur "Connect to Supabase" en haut à droite.')
+} else {
+  console.log('✅ Variables Supabase configurées correctement')
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
