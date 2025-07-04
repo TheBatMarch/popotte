@@ -37,7 +37,7 @@ export function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 pb-20">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <h2 className="text-3xl font-bold text-gray-900">
@@ -45,12 +45,6 @@ export function Auth() {
           </h2>
           <p className="mt-2 text-gray-600">
             {isLogin ? 'Connectez-vous pour continuer' : 'Rejoignez notre association'}
-          </p>
-        </div>
-
-        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-700">
-            💡 Mode démo : utilisez n'importe quel email et le mot de passe "password"
           </p>
         </div>
 

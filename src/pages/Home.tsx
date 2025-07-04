@@ -55,8 +55,8 @@ export function Home() {
         
         <div className="card text-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto mb-4"></div>
-          <h3 className="text-lg font-semibold mb-2">Initialisation de la base de données...</h3>
-          <p className="text-gray-600">Création des catégories, produits et actualités</p>
+          <h3 className="text-lg font-semibold mb-2">Chargement...</h3>
+          <p className="text-gray-600">Préparation du contenu</p>
         </div>
       </div>
     )
@@ -97,7 +97,7 @@ export function Home() {
             onClick={retrySeeding}
             className="btn-primary"
           >
-            Réessayer le chargement
+            Actualiser
           </button>
         </div>
       </div>
