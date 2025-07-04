@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Calendar } from 'lucide-react'
 import { database } from '../lib/database'
-import { initializeDatabase } from '../lib/initializeDatabase'
-import { checkDatabaseContent } from '../lib/checkDatabase'
+import { setupSupabaseDirectly } from '../lib/directSupabaseSetup'
 import type { NewsPost } from '../lib/database'
 
 const logoUrl = '/ChatGPT Image 4 juil. 2025, 23_49_33.png'
@@ -20,23 +19,15 @@ export function Home() {
     try {
       setSeeding(true)
       
-      // Vérifier d'abord le contenu existant
-      console.log('🔍 Vérification du contenu actuel...')
-      const summary = await checkDatabaseContent()
+      console.log('🚀 Configuration directe de Supabase...')
+      const result = await setupSupabaseDirectly()
       
-      // Si la base est vide, l'initialiser
-      if (summary.categories === 0 && summary.products === 0 && summary.news === 0) {
-        console.log('📦 Base de données vide, initialisation...')
-        await initializeDatabase()
-        
-        // Vérifier à nouveau après initialisation
-        console.log('🔍 Vérification après initialisation...')
-        await checkDatabaseContent()
+      if (result.success) {
+        console.log('✅ Configuration réussie !', result)
       } else {
-        console.log('✅ Base de données déjà remplie')
+        console.error('❌ Échec de la configuration :', result.error)
       }
       
-      await initializeDatabase()
       await fetchNewsPosts()
     } catch (error) {
       console.error('Error initializing data:', error)
@@ -58,12 +49,17 @@ export function Home() {
 
   const retrySeeding = async () => {
     console.log('🔄 Nouvelle tentative d\'initialisation...')
-    await initializeData()
-  }
-  
-  const forceCheck = async () => {
-    console.log('🔍 Vérification forcée de la base de données...')
-    await checkDatabaseContent()
+    setSeeding(true)
+    try {
+      const result = await setupSupabaseDirectly()
+      if (result.success) {
+        await fetchNewsPosts()
+      }
+    } catch (error) {
+      console.error('Erreur retry:', error)
+    } finally {
+      setSeeding(false)
+    }
   }
 
   if (seeding) {
@@ -132,13 +128,7 @@ export function Home() {
             onClick={retrySeeding}
             className="btn-primary mt-4"
           >
-            Réessayer l'initialisation
-          </button>
-          <button 
-            onClick={forceCheck}
-            className="btn-secondary mt-2"
-          >
-            Vérifier la base de données
+            Configurer Supabase maintenant
           </button>
         </div>
       </div>
