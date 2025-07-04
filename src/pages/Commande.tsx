@@ -29,12 +29,10 @@ export function Commande() {
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    console.log('=== CHARGEMENT COMMANDE ===')
     fetchProducts()
   }, [])
 
   const fetchProducts = async () => {
-    console.log('=== RÉCUPÉRATION PRODUITS ===')
     try {
       const { data, error } = await supabase
         .from('products')
@@ -48,11 +46,9 @@ export function Commande() {
         .order('name', { ascending: true })
 
       if (error) throw error
-      console.log('✅ Produits récupérés:', data?.length || 0, 'produits')
       setProducts(data || [])
     } catch (error) {
       console.error('Error fetching products:', error)
-      console.error('❌ Erreur produits:', error)
     } finally {
       setLoading(false)
     }

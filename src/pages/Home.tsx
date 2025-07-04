@@ -4,8 +4,6 @@ import { Settings, Calendar } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 
-const logoUrl = '/ChatGPT Image 4 juil. 2025, 15_38_15.png'
-
 interface NewsPost {
   id: string
   title: string
@@ -21,12 +19,10 @@ export function Home() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    console.log('=== CHARGEMENT HOME ===')
     fetchNewsPosts()
   }, [])
 
   const fetchNewsPosts = async () => {
-    console.log('=== RÉCUPÉRATION ACTUALITÉS ===')
     try {
       const { data, error } = await supabase
         .from('news')
@@ -34,15 +30,10 @@ export function Home() {
         .eq('published', true)
         .order('created_at', { ascending: false })
 
-      if (error) {
-        console.error('❌ Erreur actualités:', error)
-        throw error
-      }
-      console.log('✅ Actualités récupérées:', data?.length || 0, 'articles')
+      if (error) throw error
       setNewsPosts(data || [])
     } catch (error) {
       console.error('Error fetching news posts:', error)
-      console.error('❌ Détails erreur actualités:', error)
     } finally {
       setLoading(false)
     }
@@ -58,14 +49,6 @@ export function Home() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-center mb-6">
-        <img 
-          src={logoUrl} 
-          alt="Popotte Association Logo" 
-          className="w-32 h-32 object-contain"
-        />
-      </div>
-      
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Popotte Association</h1>
         {profile?.role === 'admin' && (
