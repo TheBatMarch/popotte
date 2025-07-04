@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
+let supabase: any
+
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error('❌ ERREUR CRITIQUE: Variables Supabase manquantes!')
   console.error('URL:', supabaseUrl || 'MANQUANTE')
@@ -31,10 +33,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
     })
   }
   
-  export const supabase = dummyClient as any
+  supabase = dummyClient
 } else {
-  export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+  supabase = createClient(supabaseUrl, supabaseAnonKey)
 }
+
+export { supabase }
 
 export type Database = {
   public: {
