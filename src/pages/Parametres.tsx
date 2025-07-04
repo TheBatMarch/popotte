@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { 
   LogOut, 
   User, 
@@ -9,7 +9,8 @@ import {
   FileText, 
   Package,
   Save,
-  X
+  X,
+  TrendingUp
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
@@ -20,6 +21,40 @@ export function Parametres() {
   const [fullName, setFullName] = useState(profile?.full_name || '')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [stats, setStats] = useState({
+    totalPending: 0,
+    totalNotified: 0,
+    totalAmount: 0
+  })
+
+  useEffect(() => {
+    if (profile?.role === 'admin') {
+      fetchStats()
+    }
+  }, [profile])
+
+  const fetchStats = async () => {
+    try {
+      // Récupérer toutes les commandes non confirmées
+      const { data: orders, error } = await supabase
+        .from('orders')
+        .select('total_amount, status')
+        .in('status', ['pending', 'payment_notified'])
+
+      if (error) throw error
+
+      const pending = orders?.filter(o => o.status === 'pending') || []
+      const notified = orders?.filter(o => o.status === 'payment_notified') || []
+      
+      setStats({
+        totalPending: pending.reduce((sum, o) => sum + o.total_amount, 0),
+        totalNotified: notified.reduce((sum, o) => sum + o.total_amount, 0),
+        totalAmount: orders?.reduce((sum, o) => sum + o.total_amount, 0) || 0
+      })
+    } catch (error) {
+      console.error('Error fetching stats:', error)
+    }
+  }
 
   const handleSignOut = async () => {
     try {
@@ -46,7 +81,6 @@ export function Parametres() {
 
       setMessage('Informations mises à jour avec succès !')
       setEditingProfile(false)
-      // Refresh the page to update the profile context
       window.location.reload()
     } catch (error: any) {
       setMessage('Erreur lors de la mise à jour : ' + error.message)
@@ -157,6 +191,33 @@ export function Parametres() {
           </form>
         )}
       </div>
+
+      {/* Graphique des montants à percevoir (admin seulement) */}
+      {profile?.role === 'admin' && (
+        <div className="card">
+          <div className="flex items-center space-x-2 mb-4">
+            <TrendingUp className="text-primary-500" size={20} />
+            <h2 className="text-lg font-semibold text-gray-800">Montants à percevoir</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-4">
+            <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+              <div className="text-sm text-red-600 font-medium">Non payées</div>
+              <div className="text-2xl font-bold text-red-700">{stats.totalPending.toFixed(2)} €</div>
+            </div>
+            
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <div className="text-sm text-gray-600 font-medium">En attente de confirmation</div>
+              <div className="text-2xl font-bold text-gray-700">{stats.totalNotified.toFixed(2)} €</div>
+            </div>
+            
+            <div className="bg-primary-50 p-4 rounded-lg border border-primary-200">
+              <div className="text-sm text-primary-600 font-medium">Total à percevoir</div>
+              <div className="text-2xl font-bold text-primary-700">{stats.totalAmount.toFixed(2)} €</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Fonctionnalités d'administration (si admin) */}
       {profile?.role === 'admin' && (
