@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
-import { SupabaseStatus } from './components/SupabaseStatus'
 import { Layout } from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { Home } from './pages/Home'
@@ -17,64 +16,61 @@ import { Products } from './pages/admin/Products'
 
 function App() {
   return (
-    <>
-      <SupabaseStatus />
-      <AuthProvider>
-        <Router>
-          <Routes>
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/" element={<Layout />}>
-              <Route index element={<Home />} />
-              <Route
-                path="commande"
-                element={
-                  <ProtectedRoute>
-                    <Commande />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="dettes"
-                element={
-                  <ProtectedRoute>
-                    <Dettes />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="parametres"
-                element={
-                  <ProtectedRoute>
-                    <Parametres />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="profile"
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="admin"
-                element={
-                  <ProtectedRoute adminOnly>
-                    <AdminLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<Users />} />
-                <Route path="orders" element={<Orders />} />
-                <Route path="news" element={<News />} />
-                <Route path="products" element={<Products />} />
-              </Route>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Home />} />
+            <Route
+              path="commande"
+              element={
+                <ProtectedRoute>
+                  <Commande />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="dettes"
+              element={
+                <ProtectedRoute>
+                  <Dettes />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="parametres"
+              element={
+                <ProtectedRoute>
+                  <Parametres />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="admin"
+              element={
+                <ProtectedRoute adminOnly>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Users />} />
+              <Route path="orders" element={<Orders />} />
+              <Route path="news" element={<News />} />
+              <Route path="products" element={<Products />} />
             </Route>
-          </Routes>
-        </Router>
-      </AuthProvider>
-    </>
+          </Route>
+        </Routes>
+      </Router>
+    </AuthProvider>
   )
 }
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Plus, Edit, Trash2, Save, X } from 'lucide-react'
-import supabase from '../../lib/supabaseClient'
+import { supabase } from '../../lib/supabase'
 
 interface NewsPost {
   id: string
@@ -32,16 +32,12 @@ export function News() {
 
   const fetchPosts = async () => {
     try {
-      console.log('🔍 Fetching news posts...')
       const { data, error } = await supabase
         .from('news')
         .select('*')
         .order('created_at', { ascending: false })
 
-      console.log('News data:', data, 'Error:', error)
-
       if (error) throw error
-      console.log('✅ News posts loaded:', data?.length || 0)
       setPosts(data || [])
     } catch (error) {
       console.error('Error fetching posts:', error)

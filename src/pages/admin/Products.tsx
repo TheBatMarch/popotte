@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Plus, Edit, Trash2, Save, X } from 'lucide-react'
-import supabase from '../../lib/supabaseClient'
+import { supabase } from '../../lib/supabase'
 
 interface Product {
   id: string
@@ -43,7 +43,6 @@ export function Products() {
 
   const fetchProducts = async () => {
     try {
-      console.log('🔍 Fetching products...')
       const { data, error } = await supabase
         .from('products')
         .select(`
@@ -54,10 +53,7 @@ export function Products() {
         `)
         .order('name', { ascending: true })
 
-      console.log('Products data:', data, 'Error:', error)
-
       if (error) throw error
-      console.log('✅ Products loaded:', data?.length || 0)
       setProducts(data || [])
     } catch (error) {
       console.error('Error fetching products:', error)
@@ -68,14 +64,12 @@ export function Products() {
 
   const fetchCategories = async () => {
     try {
-      console.log('🔍 Fetching categories...')
       const { data, error } = await supabase
         .from('categories')
         .select('*')
         .order('name', { ascending: true })
 
       if (error) throw error
-      console.log('✅ Categories loaded:', data?.length || 0)
       setCategories(data || [])
     } catch (error) {
       console.error('Error fetching categories:', error)

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Plus, Minus, ShoppingCart } from 'lucide-react'
-import supabase from '../lib/supabaseClient'
+import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 
 interface Product {
@@ -11,14 +11,9 @@ interface Product {
   category_id: string | null
   image_url: string | null
   is_available: boolean
-  display_order: number
-}
-
-interface Category {
-  id: string
-  name: string
-  slug: string
-  display_order: number
+  categories?: {
+    name: string
+  }
 }
 
 interface CartItem {
@@ -29,53 +24,31 @@ interface CartItem {
 export function Commande() {
   const { user } = useAuth()
   const [products, setProducts] = useState<Product[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
   const [cart, setCart] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  
-  // ID utilisateur factice pour les tests
-  const testUserId = 'test-user-id'
 
   useEffect(() => {
-    fetchData()
+    fetchProducts()
   }, [])
 
-  const fetchData = async () => {
+  const fetchProducts = async () => {
     try {
-      setLoading(true)
-      console.log('🔍 Fetching categories and products...')
-      
-      // Récupérer les catégories
-      const { data: categoriesData, error: categoriesError } = await supabase
-        .from('categories')
-        .select('*')
-        .order('display_order', { ascending: true })
-
-      console.log('Categories data:', categoriesData, 'Error:', categoriesError)
-
-      if (categoriesError) throw categoriesError
-
-      // Récupérer les produits
-      const { data: productsData, error: productsError } = await supabase
+      const { data, error } = await supabase
         .from('products')
-        .select('*')
+        .select(`
+          *,
+          categories (
+            name
+          )
+        `)
         .eq('is_available', true)
-        .order('display_order', { ascending: true })
+        .order('name', { ascending: true })
 
-      console.log('Products data:', productsData, 'Error:', productsError)
-
-      if (productsError) throw productsError
-
-      console.log('✅ Categories loaded:', categoriesData?.length || 0)
-      console.log('✅ Products loaded:', productsData?.length || 0)
-      
-      setCategories(categoriesData || [])
-      setProducts(productsData || [])
-    } catch (err) {
-      setError('Erreur lors du chargement des produits')
-      console.error('Error fetching data:', err)
+      if (error) throw error
+      setProducts(data || [])
+    } catch (error) {
+      console.error('Error fetching products:', error)
     } finally {
       setLoading(false)
     }
@@ -109,28 +82,6 @@ export function Commande() {
     })
   }
 
-  const updateQuantity = (productId: string, quantity: number) => {
-    if (quantity <= 0) {
-      setCart(prev => prev.filter(item => item.product.id !== productId))
-      return
-    }
-
-    const product = products.find(p => p.id === productId)
-    if (!product) return
-
-    setCart(prev => {
-      const existingItem = prev.find(item => item.product.id === productId)
-      if (existingItem) {
-        return prev.map(item =>
-          item.product.id === productId
-            ? { ...item, quantity }
-            : item
-        )
-      }
-      return [...prev, { product, quantity }]
-    })
-  }
-
   const getQuantity = (productId: string) => {
     const item = cart.find(item => item.product.id === productId)
     return item ? item.quantity : 0
@@ -141,19 +92,17 @@ export function Commande() {
   }
 
   const submitOrder = async () => {
-    if (cart.length === 0) {
-      return
-    }
+    if (!user || cart.length === 0) return
 
     setSubmitting(true)
     try {
       const totalAmount = getTotalAmount()
 
-      // Créer la commande
+      // Create order
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert({
-          user_id: user?.id || testUserId,
+          user_id: user.id,
           total_amount: totalAmount,
           status: 'pending'
         })
@@ -162,7 +111,7 @@ export function Commande() {
 
       if (orderError) throw orderError
 
-      // Créer les articles de commande
+      // Create order items
       const orderItems = cart.map(item => ({
         order_id: order.id,
         product_id: item.product.id,
@@ -177,7 +126,7 @@ export function Commande() {
 
       if (itemsError) throw itemsError
 
-      // Vider le panier
+      // Clear cart
       setCart([])
       alert('Commande validée avec succès !')
     } catch (error) {
@@ -188,6 +137,15 @@ export function Commande() {
     }
   }
 
+  const groupedProducts = products.reduce((acc, product) => {
+    const categoryName = product.categories?.name || 'Sans catégorie'
+    if (!acc[categoryName]) {
+      acc[categoryName] = []
+    }
+    acc[categoryName].push(product)
+    return acc
+  }, {} as Record<string, Product[]>)
+
   if (loading) {
     return (
       <div className="flex justify-center py-8">
@@ -196,88 +154,58 @@ export function Commande() {
     )
   }
 
-  if (error) {
-    return (
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-gray-900">Commander</h1>
-        <div className="card bg-red-50 border-red-200 text-center py-8">
-          <p className="text-red-600">{error}</p>
-          <button 
-            onClick={fetchData}
-            className="mt-4 btn-primary"
-          >
-            Réessayer
-          </button>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-900">Commander</h1>
 
-      {categories.map((category) => {
-        const categoryProducts = products.filter(p => p.category_id === category.id)
-        
-        if (categoryProducts.length === 0) return null
-
-        return (
-          <div key={category.id} className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-800 uppercase">{category.name}</h2>
-            
-            <div className="space-y-2">
-              {categoryProducts.map((product) => {
-                const quantity = getQuantity(product.id)
-                const itemTotal = quantity * product.price
-
-                return (
-                  <div key={product.id} className="card flex items-center justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-medium">{product.name}</h3>
-                      {product.description && (
-                        <p className="text-sm text-gray-500">{product.description}</p>
-                      )}
-                      <p className="text-sm text-gray-600">{product.price.toFixed(2)} €</p>
-                    </div>
-                    
-                    <div className="flex items-center space-x-3">
-                      <button
-                        onClick={() => removeFromCart(product.id)}
-                        className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors"
-                        disabled={quantity === 0}
-                      >
-                        <Minus size={16} />
-                      </button>
-                      
-                      <input
-                        type="number"
-                        min="0"
-                        value={quantity}
-                        onChange={(e) => updateQuantity(product.id, parseInt(e.target.value) || 0)}
-                        className="w-16 text-center border border-gray-300 rounded px-2 py-1"
-                      />
-                      
-                      <button
-                        onClick={() => addToCart(product)}
-                        className="w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 transition-colors"
-                      >
-                        <Plus size={16} />
-                      </button>
-
-                      {quantity > 0 && (
-                        <div className="text-sm font-medium text-primary-600 min-w-[60px] text-right">
-                          {itemTotal.toFixed(2)} €
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+      {Object.entries(groupedProducts).map(([category, categoryProducts]) => (
+        <div key={category} className="space-y-4">
+          <h2 className="text-lg font-semibold text-gray-800">{category}</h2>
+          
+          <div className="space-y-2">
+            {categoryProducts.map((product) => (
+              <div key={product.id} className="card flex items-center justify-between">
+                <div className="flex-1">
+                  <h3 className="font-medium">{product.name}</h3>
+                  {product.description && (
+                    <p className="text-sm text-gray-500">{product.description}</p>
+                  )}
+                  <p className="text-sm text-gray-600">{product.price.toFixed(2)} €</p>
+                </div>
+                
+                {product.image_url && (
+                  <img
+                    src={product.image_url}
+                    alt={product.name}
+                    className="w-16 h-16 object-cover rounded-lg mx-4"
+                  />
+                )}
+                
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => removeFromCart(product.id)}
+                    className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors"
+                    disabled={getQuantity(product.id) === 0}
+                  >
+                    <Minus size={16} />
+                  </button>
+                  
+                  <span className="w-8 text-center font-medium">
+                    {getQuantity(product.id)}
+                  </span>
+                  
+                  <button
+                    onClick={() => addToCart(product)}
+                    className="w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 transition-colors"
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-        )
-      })}
+        </div>
+      ))}
 
       {cart.length > 0 && (
         <div className="fixed top-4 right-4 z-50">

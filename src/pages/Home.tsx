@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Settings, Calendar } from 'lucide-react'
-import supabase from '../lib/supabaseClient'
+import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+
+const logoUrl = '/ChatGPT Image 4 juil. 2025, 15_38_15.png'
 
 interface NewsPost {
   id: string
@@ -17,7 +19,6 @@ export function Home() {
   const { profile } = useAuth()
   const [newsPosts, setNewsPosts] = useState<NewsPost[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetchNewsPosts()
@@ -25,26 +26,16 @@ export function Home() {
 
   const fetchNewsPosts = async () => {
     try {
-      setLoading(true)
-      
-      // Essayer d'abord sans filtre published pour voir toutes les actualités
       const { data, error } = await supabase
         .from('news')
         .select('*')
+        .eq('published', true)
         .order('created_at', { ascending: false })
 
-      console.log('News data:', data, 'Error:', error)
-
-      if (error) {
-        setError('Erreur lors du chargement des actualités')
-        console.error('Error fetching news:', error)
-        return
-      }
-
+      if (error) throw error
       setNewsPosts(data || [])
-    } catch (err) {
-      setError('Erreur de connexion')
-      console.error('Network error:', err)
+    } catch (error) {
+      console.error('Error fetching news posts:', error)
     } finally {
       setLoading(false)
     }
@@ -58,33 +49,16 @@ export function Home() {
     })
   }
 
-  if (loading) {
-    return (
-      <div className="flex justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-gray-900">Popotte Association</h1>
-        <div className="card bg-red-50 border-red-200 text-center py-8">
-          <p className="text-red-600">{error}</p>
-          <button 
-            onClick={fetchNewsPosts}
-            className="mt-4 btn-primary"
-          >
-            Réessayer
-          </button>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-6">
+      <div className="flex justify-center mb-6">
+        <img 
+          src={logoUrl} 
+          alt="Popotte Association Logo" 
+          className="w-32 h-32 object-contain"
+        />
+      </div>
+      
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Popotte Association</h1>
         {profile?.role === 'admin' && (
@@ -108,14 +82,13 @@ export function Home() {
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Actualités</h2>
         
-        {newsPosts.length === 0 ? (
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+          </div>
+        ) : newsPosts.length === 0 ? (
           <div className="card text-center py-8">
             <p className="text-gray-500">Aucune actualité pour le moment.</p>
-            {profile?.role === 'admin' && (
-              <Link to="/admin/news" className="text-primary-500 hover:text-primary-600 text-sm">
-                Créer le premier article
-              </Link>
-            )}
           </div>
         ) : (
           newsPosts.map((post) => (

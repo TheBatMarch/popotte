@@ -1,7 +1,9 @@
-// Ce fichier est maintenant remplacé par supabaseClient.ts
-// Gardé pour la compatibilité avec les imports existants
-import supabase from './supabaseClient'
-export { supabase }
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export type Database = {
   public: {
