@@ -21,12 +21,107 @@ interface CartItem {
   quantity: number
 }
 
+// Produits de démonstration
+const DEMO_PRODUCTS: Product[] = [
+  {
+    id: 'demo-1',
+    name: 'Couscous royal',
+    description: 'Couscous traditionnel avec merguez, agneau et légumes',
+    price: 12.50,
+    category_id: 'demo-cat-1',
+    image_url: 'https://images.pexels.com/photos/4518843/pexels-photo-4518843.jpeg',
+    is_available: true,
+    categories: { name: 'Plats principaux' }
+  },
+  {
+    id: 'demo-2',
+    name: 'Tajine de poulet',
+    description: 'Tajine de poulet aux olives et citrons confits',
+    price: 11.00,
+    category_id: 'demo-cat-1',
+    image_url: 'https://images.pexels.com/photos/5949888/pexels-photo-5949888.jpeg',
+    is_available: true,
+    categories: { name: 'Plats principaux' }
+  },
+  {
+    id: 'demo-3',
+    name: 'Pastilla au poisson',
+    description: 'Pastilla traditionnelle au poisson et aux épices',
+    price: 9.50,
+    category_id: 'demo-cat-1',
+    image_url: 'https://images.pexels.com/photos/4518843/pexels-photo-4518843.jpeg',
+    is_available: true,
+    categories: { name: 'Plats principaux' }
+  },
+  {
+    id: 'demo-4',
+    name: 'Harira',
+    description: 'Soupe traditionnelle marocaine aux lentilles',
+    price: 4.50,
+    category_id: 'demo-cat-2',
+    image_url: 'https://images.pexels.com/photos/539451/pexels-photo-539451.jpeg',
+    is_available: true,
+    categories: { name: 'Entrées' }
+  },
+  {
+    id: 'demo-5',
+    name: 'Salade marocaine',
+    description: 'Salade fraîche aux tomates, concombres et herbes',
+    price: 5.00,
+    category_id: 'demo-cat-2',
+    image_url: 'https://images.pexels.com/photos/1059905/pexels-photo-1059905.jpeg',
+    is_available: true,
+    categories: { name: 'Entrées' }
+  },
+  {
+    id: 'demo-6',
+    name: 'Thé à la menthe',
+    description: 'Thé traditionnel marocain à la menthe fraîche',
+    price: 2.50,
+    category_id: 'demo-cat-3',
+    image_url: 'https://images.pexels.com/photos/230477/pexels-photo-230477.jpeg',
+    is_available: true,
+    categories: { name: 'Boissons' }
+  },
+  {
+    id: 'demo-7',
+    name: 'Jus d\'orange frais',
+    description: 'Jus d\'orange pressé du jour',
+    price: 3.00,
+    category_id: 'demo-cat-3',
+    image_url: 'https://images.pexels.com/photos/96974/pexels-photo-96974.jpeg',
+    is_available: true,
+    categories: { name: 'Boissons' }
+  },
+  {
+    id: 'demo-8',
+    name: 'Cornes de gazelle',
+    description: 'Pâtisseries traditionnelles aux amandes',
+    price: 6.00,
+    category_id: 'demo-cat-4',
+    image_url: 'https://images.pexels.com/photos/1126359/pexels-photo-1126359.jpeg',
+    is_available: true,
+    categories: { name: 'Desserts' }
+  },
+  {
+    id: 'demo-9',
+    name: 'Chebakia',
+    description: 'Pâtisseries au miel et graines de sésame',
+    price: 5.50,
+    category_id: 'demo-cat-4',
+    image_url: 'https://images.pexels.com/photos/1126359/pexels-photo-1126359.jpeg',
+    is_available: true,
+    categories: { name: 'Desserts' }
+  }
+]
+
 export function Commande() {
   const { user } = useAuth()
   const [products, setProducts] = useState<Product[]>([])
   const [cart, setCart] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [usingDemo, setUsingDemo] = useState(false)
 
   useEffect(() => {
     fetchProducts()
@@ -35,6 +130,19 @@ export function Commande() {
   const fetchProducts = async () => {
     try {
       console.log('🔍 Tentative de récupération des produits...')
+      
+      // Vérifier si Supabase est configuré
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+      
+      if (!supabaseUrl || !supabaseAnonKey) {
+        console.log('⚠️ Supabase non configuré, utilisation des produits de démonstration')
+        setProducts(DEMO_PRODUCTS)
+        setUsingDemo(true)
+        setLoading(false)
+        return
+      }
+
       const { data, error } = await supabase
         .from('products')
         .select(`
@@ -48,15 +156,25 @@ export function Commande() {
 
       if (error) {
         console.error('❌ Erreur lors de la récupération des produits:', error)
-        throw error
+        console.log('🔄 Basculement vers les produits de démonstration')
+        setProducts(DEMO_PRODUCTS)
+        setUsingDemo(true)
+      } else {
+        console.log('✅ Produits récupérés:', data?.length || 0, 'produits')
+        if (data && data.length > 0) {
+          setProducts(data)
+          setUsingDemo(false)
+        } else {
+          console.log('📦 Aucun produit trouvé, utilisation des produits de démonstration')
+          setProducts(DEMO_PRODUCTS)
+          setUsingDemo(true)
+        }
       }
-      
-      console.log('✅ Produits récupérés:', data?.length || 0, 'produits')
-      setProducts(data || [])
     } catch (error) {
       console.error('Error fetching products:', error)
-      // En cas d'erreur, on arrête le loading pour éviter le spinner infini
-      setProducts([])
+      console.log('🔄 Basculement vers les produits de démonstration')
+      setProducts(DEMO_PRODUCTS)
+      setUsingDemo(true)
     } finally {
       setLoading(false)
     }
@@ -100,7 +218,19 @@ export function Commande() {
   }
 
   const submitOrder = async () => {
-    if (!user || cart.length === 0) return
+    if (!user || cart.length === 0) {
+      if (!user) {
+        alert('Vous devez être connecté pour passer une commande')
+        return
+      }
+      return
+    }
+
+    if (usingDemo) {
+      alert('Mode démonstration : Votre commande de ' + getTotalAmount().toFixed(2) + '€ a été simulée avec succès !')
+      setCart([])
+      return
+    }
 
     setSubmitting(true)
     try {
@@ -164,7 +294,22 @@ export function Commande() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Commander</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">Commander</h1>
+        {usingDemo && (
+          <div className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+            Mode démo
+          </div>
+        )}
+      </div>
+
+      {usingDemo && (
+        <div className="card bg-blue-50 border-blue-200">
+          <p className="text-sm text-blue-700">
+            💡 Produits de démonstration affichés. Connectez Supabase pour voir le menu réel.
+          </p>
+        </div>
+      )}
 
       {Object.entries(groupedProducts).map(([category, categoryProducts]) => (
         <div key={category} className="space-y-4">

@@ -19,14 +19,90 @@ interface Order {
   }[]
 }
 
+// Commandes de démonstration
+const DEMO_ORDERS: Order[] = [
+  {
+    id: 'demo-order-1',
+    total_amount: 23.50,
+    status: 'pending',
+    created_at: new Date().toISOString(),
+    order_items: [
+      {
+        id: 'demo-item-1',
+        quantity: 1,
+        unit_price: 12.50,
+        total_price: 12.50,
+        products: { name: 'Couscous royal' }
+      },
+      {
+        id: 'demo-item-2',
+        quantity: 2,
+        unit_price: 5.50,
+        total_price: 11.00,
+        products: { name: 'Chebakia' }
+      }
+    ]
+  },
+  {
+    id: 'demo-order-2',
+    total_amount: 15.50,
+    status: 'payment_notified',
+    created_at: new Date(Date.now() - 86400000).toISOString(), // Hier
+    order_items: [
+      {
+        id: 'demo-item-3',
+        quantity: 1,
+        unit_price: 11.00,
+        total_price: 11.00,
+        products: { name: 'Tajine de poulet' }
+      },
+      {
+        id: 'demo-item-4',
+        quantity: 1,
+        unit_price: 4.50,
+        total_price: 4.50,
+        products: { name: 'Harira' }
+      }
+    ]
+  },
+  {
+    id: 'demo-order-3',
+    total_amount: 18.00,
+    status: 'confirmed',
+    created_at: new Date(Date.now() - 172800000).toISOString(), // Il y a 2 jours
+    order_items: [
+      {
+        id: 'demo-item-5',
+        quantity: 1,
+        unit_price: 12.50,
+        total_price: 12.50,
+        products: { name: 'Couscous royal' }
+      },
+      {
+        id: 'demo-item-6',
+        quantity: 1,
+        unit_price: 5.50,
+        total_price: 5.50,
+        products: { name: 'Salade marocaine' }
+      }
+    ]
+  }
+]
+
 export function Dettes() {
   const { user } = useAuth()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const [usingDemo, setUsingDemo] = useState(false)
 
   useEffect(() => {
     if (user) {
       fetchOrders()
+    } else {
+      // Si pas d'utilisateur connecté, afficher les données de démo
+      setOrders(DEMO_ORDERS)
+      setUsingDemo(true)
+      setLoading(false)
     }
   }, [user])
 
@@ -35,6 +111,19 @@ export function Dettes() {
 
     try {
       console.log('🔍 Tentative de récupération des commandes...')
+      
+      // Vérifier si Supabase est configuré
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+      
+      if (!supabaseUrl || !supabaseAnonKey) {
+        console.log('⚠️ Supabase non configuré, utilisation des commandes de démonstration')
+        setOrders(DEMO_ORDERS)
+        setUsingDemo(true)
+        setLoading(false)
+        return
+      }
+
       const { data, error } = await supabase
         .from('orders')
         .select(`
@@ -54,21 +143,42 @@ export function Dettes() {
 
       if (error) {
         console.error('❌ Erreur lors de la récupération des commandes:', error)
-        throw error
+        console.log('🔄 Basculement vers les commandes de démonstration')
+        setOrders(DEMO_ORDERS)
+        setUsingDemo(true)
+      } else {
+        console.log('✅ Commandes récupérées:', data?.length || 0, 'commandes')
+        if (data && data.length > 0) {
+          setOrders(data)
+          setUsingDemo(false)
+        } else {
+          console.log('📋 Aucune commande trouvée, utilisation des commandes de démonstration')
+          setOrders(DEMO_ORDERS)
+          setUsingDemo(true)
+        }
       }
-      
-      console.log('✅ Commandes récupérées:', data?.length || 0, 'commandes')
-      setOrders(data || [])
     } catch (error) {
       console.error('Error fetching orders:', error)
-      // En cas d'erreur, on arrête le loading pour éviter le spinner infini
-      setOrders([])
+      console.log('🔄 Basculement vers les commandes de démonstration')
+      setOrders(DEMO_ORDERS)
+      setUsingDemo(true)
     } finally {
       setLoading(false)
     }
   }
 
   const notifyPayment = async (orderId: string) => {
+    if (usingDemo) {
+      alert('Mode démonstration : Paiement notifié avec succès !')
+      // Simuler la mise à jour du statut
+      setOrders(prev => prev.map(order => 
+        order.id === orderId 
+          ? { ...order, status: 'payment_notified' as const }
+          : order
+      ))
+      return
+    }
+
     try {
       const { error } = await supabase
         .from('orders')
@@ -115,7 +225,22 @@ export function Dettes() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Mes Dettes</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">Mes Dettes</h1>
+        {usingDemo && (
+          <div className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+            Mode démo
+          </div>
+        )}
+      </div>
+
+      {usingDemo && (
+        <div className="card bg-blue-50 border-blue-200">
+          <p className="text-sm text-blue-700">
+            💡 Données de démonstration affichées. Connectez-vous et configurez Supabase pour voir vos vraies dettes.
+          </p>
+        </div>
+      )}
 
       {/* Dettes non réglées */}
       <div className="space-y-4">
