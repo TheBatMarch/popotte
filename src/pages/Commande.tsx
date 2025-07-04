@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Plus, Minus, ShoppingCart } from 'lucide-react'
-import { supabase } from '../lib/supabase'
+import supabase from '../lib/supabaseClient'
 import { useAuth } from '../contexts/AuthContext'
 
 interface Product {
@@ -33,6 +33,7 @@ export function Commande() {
   const [cart, setCart] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetchData()
@@ -40,11 +41,15 @@ export function Commande() {
 
   const fetchData = async () => {
     try {
+      setLoading(true)
+      
       // Récupérer les catégories
       const { data: categoriesData, error: categoriesError } = await supabase
         .from('categories')
         .select('*')
         .order('display_order', { ascending: true })
+
+      console.log('Categories data:', categoriesData, 'Error:', categoriesError)
 
       if (categoriesError) throw categoriesError
 
@@ -55,12 +60,15 @@ export function Commande() {
         .eq('is_available', true)
         .order('display_order', { ascending: true })
 
+      console.log('Products data:', productsData, 'Error:', productsError)
+
       if (productsError) throw productsError
 
       setCategories(categoriesData || [])
       setProducts(productsData || [])
-    } catch (error) {
-      console.error('Error fetching data:', error)
+    } catch (err) {
+      setError('Erreur lors du chargement des produits')
+      console.error('Error fetching data:', err)
     } finally {
       setLoading(false)
     }
@@ -181,6 +189,23 @@ export function Commande() {
     return (
       <div className="flex justify-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold text-gray-900">Commander</h1>
+        <div className="card bg-red-50 border-red-200 text-center py-8">
+          <p className="text-red-600">{error}</p>
+          <button 
+            onClick={fetchData}
+            className="mt-4 btn-primary"
+          >
+            Réessayer
+          </button>
+        </div>
       </div>
     )
   }

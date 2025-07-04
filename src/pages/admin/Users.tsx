@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Shield } from 'lucide-react'
-import { supabase } from '../../lib/supabase'
+import supabase from '../../lib/supabaseClient'
 
 interface User {
   id: string
@@ -35,6 +35,8 @@ export function Users() {
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false })
+
+      console.log('Users data:', data, 'Error:', error)
 
       if (error) throw error
       setUsers(data || [])

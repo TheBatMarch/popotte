@@ -1,5 +1,6 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { Users, CreditCard, FileText, Package, ArrowLeft } from 'lucide-react'
+import supabase from '../../lib/supabaseClient'
 
 export function AdminLayout() {
   const location = useLocation()

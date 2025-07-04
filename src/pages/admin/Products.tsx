@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Plus, Edit, Trash2, Save, X } from 'lucide-react'
-import { supabase } from '../../lib/supabase'
+import supabase from '../../lib/supabaseClient'
 
 interface Product {
   id: string
@@ -52,6 +52,8 @@ export function Products() {
           )
         `)
         .order('name', { ascending: true })
+
+      console.log('Products data:', data, 'Error:', error)
 
       if (error) throw error
       setProducts(data || [])

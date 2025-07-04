@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { CreditCard, ExternalLink } from 'lucide-react'
-import { supabase } from '../lib/supabase'
+import supabase from '../lib/supabaseClient'
 import { useAuth } from '../contexts/AuthContext'
 
 interface Order {
@@ -23,10 +23,13 @@ export function Dettes() {
   const { user } = useAuth()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (user) {
       fetchOrders()
+    } else {
+      setLoading(false)
     }
   }, [user])
 
@@ -34,6 +37,7 @@ export function Dettes() {
     if (!user) return
 
     try {
+      setLoading(true)
       const { data, error } = await supabase
         .from('orders')
         .select(`
@@ -51,10 +55,18 @@ export function Dettes() {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+      console.log('Orders data:', data, 'Error:', error)
+
+      if (error) {
+        setError('Erreur lors du chargement des commandes')
+        console.error('Error fetching orders:', error)
+        return
+      }
+
       setOrders(data || [])
-    } catch (error) {
-      console.error('Error fetching orders:', error)
+    } catch (err) {
+      setError('Erreur de connexion')
+      console.error('Network error:', err)
     } finally {
       setLoading(false)
     }
@@ -100,6 +112,34 @@ export function Dettes() {
     return (
       <div className="flex justify-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold text-gray-900">Mes Dettes</h1>
+        <div className="card bg-red-50 border-red-200 text-center py-8">
+          <p className="text-red-600">{error}</p>
+          <button 
+            onClick={fetchOrders}
+            className="mt-4 btn-primary"
+          >
+            Réessayer
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold text-gray-900">Mes Dettes</h1>
+        <div className="card text-center py-8">
+          <p className="text-gray-500">Vous devez être connecté pour voir vos dettes.</p>
+        </div>
       </div>
     )
   }
@@ -154,7 +194,6 @@ export function Dettes() {
                   rel="noopener noreferrer"
                   className="w-full btn-primary flex items-center justify-center space-x-2"
                   onClick={() => {
-                    // Après avoir cliqué sur PayPal, afficher le bouton de notification
                     setTimeout(() => {
                       const notifyButton = document.getElementById('notify-button')
                       if (notifyButton) {

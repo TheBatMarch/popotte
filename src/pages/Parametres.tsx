@@ -13,7 +13,7 @@ import {
   TrendingUp
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
-import { supabase } from '../lib/supabase'
+import supabase from '../lib/supabaseClient'
 
 export function Parametres() {
   const { profile, signOut } = useAuth()
@@ -40,6 +40,8 @@ export function Parametres() {
         .from('orders')
         .select('total_amount, status')
         .in('status', ['pending', 'payment_notified'])
+
+      console.log('Stats data:', orders, 'Error:', error)
 
       if (error) throw error
 

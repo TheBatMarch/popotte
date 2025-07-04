@@ -1,43 +1,6 @@
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-let supabase: any
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('❌ ERREUR CRITIQUE: Variables Supabase manquantes!')
-  console.error('URL:', supabaseUrl || 'MANQUANTE')
-  console.error('Key:', supabaseAnonKey ? 'PRÉSENTE' : 'MANQUANTE')
-  
-  // Créer un client factice pour éviter les erreurs
-  const dummyClient = {
-    auth: {
-      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-      signInWithPassword: () => Promise.reject(new Error('Supabase non configuré')),
-      signUp: () => Promise.reject(new Error('Supabase non configuré')),
-      signOut: () => Promise.reject(new Error('Supabase non configuré'))
-    },
-    from: () => ({
-      select: () => ({ 
-        eq: () => ({ 
-          single: () => Promise.resolve({ data: null, error: new Error('Supabase non configuré') }),
-          order: () => Promise.resolve({ data: [], error: new Error('Supabase non configuré') })
-        }),
-        order: () => Promise.resolve({ data: [], error: new Error('Supabase non configuré') })
-      }),
-      insert: () => Promise.resolve({ data: null, error: new Error('Supabase non configuré') }),
-      update: () => ({ eq: () => Promise.resolve({ data: null, error: new Error('Supabase non configuré') }) }),
-      delete: () => ({ eq: () => Promise.resolve({ data: null, error: new Error('Supabase non configuré') }) })
-    })
-  }
-  
-  supabase = dummyClient
-} else {
-  supabase = createClient(supabaseUrl, supabaseAnonKey)
-}
-
+// Ce fichier est maintenant remplacé par supabaseClient.ts
+// Gardé pour la compatibilité avec les imports existants
+import supabase from './supabaseClient'
 export { supabase }
 
 export type Database = {

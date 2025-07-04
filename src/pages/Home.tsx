@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Settings, Calendar } from 'lucide-react'
-import { supabase } from '../lib/supabase'
+import supabase from '../lib/supabaseClient'
 import { useAuth } from '../contexts/AuthContext'
 
 interface NewsPost {
@@ -17,6 +17,7 @@ export function Home() {
   const { profile } = useAuth()
   const [newsPosts, setNewsPosts] = useState<NewsPost[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetchNewsPosts()
@@ -24,16 +25,25 @@ export function Home() {
 
   const fetchNewsPosts = async () => {
     try {
+      setLoading(true)
       const { data, error } = await supabase
         .from('news')
         .select('*')
         .eq('published', true)
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+      console.log('News data:', data, 'Error:', error)
+
+      if (error) {
+        setError('Erreur lors du chargement des actualités')
+        console.error('Error fetching news:', error)
+        return
+      }
+
       setNewsPosts(data || [])
-    } catch (error) {
-      console.error('Error fetching news posts:', error)
+    } catch (err) {
+      setError('Erreur de connexion')
+      console.error('Network error:', err)
     } finally {
       setLoading(false)
     }
@@ -45,6 +55,31 @@ export function Home() {
       month: 'long',
       year: 'numeric',
     })
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold text-gray-900">Popotte Association</h1>
+        <div className="card bg-red-50 border-red-200 text-center py-8">
+          <p className="text-red-600">{error}</p>
+          <button 
+            onClick={fetchNewsPosts}
+            className="mt-4 btn-primary"
+          >
+            Réessayer
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -72,11 +107,7 @@ export function Home() {
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Actualités</h2>
         
-        {loading ? (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
-          </div>
-        ) : newsPosts.length === 0 ? (
+        {newsPosts.length === 0 ? (
           <div className="card text-center py-8">
             <p className="text-gray-500">Aucune actualité pour le moment.</p>
             {profile?.role === 'admin' && (

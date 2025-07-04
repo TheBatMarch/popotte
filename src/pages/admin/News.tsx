@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Plus, Edit, Trash2, Save, X } from 'lucide-react'
-import { supabase } from '../../lib/supabase'
+import supabase from '../../lib/supabaseClient'
 
 interface NewsPost {
   id: string
@@ -36,6 +36,8 @@ export function News() {
         .from('news')
         .select('*')
         .order('created_at', { ascending: false })
+
+      console.log('News data:', data, 'Error:', error)
 
       if (error) throw error
       setPosts(data || [])

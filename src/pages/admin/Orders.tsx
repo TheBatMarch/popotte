@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { supabase } from '../../lib/supabase'
+import supabase from '../../lib/supabaseClient'
 
 interface OrderWithDetails {
   id: string
@@ -51,6 +51,8 @@ export function Orders() {
           )
         `)
         .order('created_at', { ascending: false })
+
+      console.log('Orders data:', data, 'Error:', error)
 
       if (error) throw error
       setOrders(data || [])
