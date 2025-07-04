@@ -10,7 +10,9 @@ import {
   Package,
   Save,
   X,
-  ArrowLeft
+  ArrowLeft,
+  TrendingUp,
+  DollarSign
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { mockDatabase } from '../lib/mockDatabase'
@@ -31,6 +33,66 @@ export function Parametres() {
   const [fullName, setFullName] = useState(profile?.full_name || '')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [stats, setStats] = useState({
+    totalDebts: 0,
+    salesCurrentYear: 0,
+    salesPreviousYear: 0,
+    salesTwoYearsAgo: 0
+  })
+  const [statsLoading, setStatsLoading] = useState(true)
+
+  useEffect(() => {
+    if (profile?.role === 'admin') {
+      fetchStats()
+    }
+  }, [profile])
+
+  const fetchStats = async () => {
+    try {
+      const orders = await mockDatabase.getOrders()
+      const currentYear = new Date().getFullYear()
+      
+      // Total des dettes en cours (commandes pending)
+      const totalDebts = orders
+        .filter(order => order.status === 'pending')
+        .reduce((sum, order) => sum + order.total_amount, 0)
+      
+      // Ventes de l'année actuelle (commandes confirmées)
+      const salesCurrentYear = orders
+        .filter(order => {
+          const orderYear = new Date(order.created_at).getFullYear()
+          return order.status === 'confirmed' && orderYear === currentYear
+        })
+        .reduce((sum, order) => sum + order.total_amount, 0)
+      
+      // Ventes de l'année précédente
+      const salesPreviousYear = orders
+        .filter(order => {
+          const orderYear = new Date(order.created_at).getFullYear()
+          return order.status === 'confirmed' && orderYear === currentYear - 1
+        })
+        .reduce((sum, order) => sum + order.total_amount, 0)
+      
+      // Ventes d'il y a deux ans
+      const salesTwoYearsAgo = orders
+        .filter(order => {
+          const orderYear = new Date(order.created_at).getFullYear()
+          return order.status === 'confirmed' && orderYear === currentYear - 2
+        })
+        .reduce((sum, order) => sum + order.total_amount, 0)
+      
+      setStats({
+        totalDebts,
+        salesCurrentYear,
+        salesPreviousYear,
+        salesTwoYearsAgo
+      })
+    } catch (error) {
+      console.error('Error fetching stats:', error)
+    } finally {
+      setStatsLoading(false)
+    }
+  }
 
   const handleSignOut = async () => {
     try {
@@ -83,6 +145,87 @@ export function Parametres() {
 
   const renderMainView = () => (
     <>
+      {/* Statistiques financières - Admin seulement */}
+      {profile?.role === 'admin' && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-gray-800">Statistiques financières</h2>
+          
+          {statsLoading ? (
+            <div className="card">
+              <div className="flex justify-center py-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4">
+              {/* Dettes en cours */}
+              <div className="card border-l-4 border-red-500 bg-red-50">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                    <CreditCard className="text-red-600" size={24} />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-red-900">Dettes en cours</h3>
+                    <p className="text-sm text-red-600">Total à régler par les membres</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-red-600">
+                      {stats.totalDebts.toFixed(2)} €
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Ventes par année */}
+              <div className="card border-l-4 border-green-500 bg-green-50">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <TrendingUp className="text-green-600" size={24} />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-green-900">Ventes confirmées</h3>
+                    <p className="text-sm text-green-600">Chiffre d'affaires par année</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-700">
+                      {new Date().getFullYear()} (année actuelle)
+                    </span>
+                    <span className="text-lg font-semibold text-green-600">
+                      {stats.salesCurrentYear.toFixed(2)} €
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">
+                      {new Date().getFullYear() - 1}
+                    </span>
+                    <span className="text-lg font-semibold text-gray-700">
+                      {stats.salesPreviousYear.toFixed(2)} €
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">
+                      {new Date().getFullYear() - 2}
+                    </span>
+                    <span className="text-lg font-semibold text-gray-700">
+                      {stats.salesTwoYearsAgo.toFixed(2)} €
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Fonctionnalités principales */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold text-gray-800">Fonctionnalités</h2>
+        
         <div className="grid grid-cols-1 gap-4">
           {/* Gestion des utilisateurs - Admin seulement */}
           {profile?.role === 'admin' && (
@@ -177,6 +320,7 @@ export function Parametres() {
             </div>
           </button>
         </div>
+      </div>
 
       {/* Déconnexion */}
       <div className="pt-4">
