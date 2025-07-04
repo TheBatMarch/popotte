@@ -677,11 +677,11 @@ export function Products() {
                   <div key={product.id} className="card">
                     <div className="flex justify-between items-start">
                       <div className="flex space-x-4 flex-1">
-                        {product.image_url && (
+            <div className="space-y-3">
                           <img
                             src={product.image_url}
-                            alt={product.name}
-                            className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                  <div className="flex items-start space-x-4">
+                    <div className="flex space-x-4 flex-1">
                           />
                         )}
                         
@@ -746,18 +746,23 @@ export function Products() {
                             className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                             title="Descendre le produit"
                           >
-                            <ChevronDown size={16} />
-                          </button>
+                    {/* Colonne des actions à droite */}
+                    <div className="flex flex-col space-y-1 ml-4">
+                      <div className="flex items-center space-x-1">
                         </div>
+                        <button
+                      <div className="flex items-center space-x-1">
                         <button
                           onClick={() => handleEditProduct(product)}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Modifier le produit"
                         >
                           <Edit size={16} />
                         </button>
                         <button
                           onClick={() => handleDeleteProduct(product.id)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Supprimer le produit"
                         >
                           <Trash2 size={16} />
                         </button>
