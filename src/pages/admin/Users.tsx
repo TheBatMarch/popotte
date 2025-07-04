@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { Shield, Search } from 'lucide-react'
-import { mockDatabase } from '../../lib/mockDatabase'
-import type { User, Order } from '../../lib/mockData'
+import { database } from '../../lib/database'
+import type { Profile, Order } from '../../lib/database'
 
 export function Users() {
-  const [users, setUsers] = useState<User[]>([])
-  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [users, setUsers] = useState<Profile[]>([])
+  const [selectedUser, setSelectedUser] = useState<Profile | null>(null)
   const [userOrders, setUserOrders] = useState<Order[]>([])
   const [userDebts, setUserDebts] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
@@ -20,7 +20,7 @@ export function Users() {
 
   const fetchUsers = async () => {
     try {
-      const data = await mockDatabase.getUsers()
+      const data = await database.getUsers()
       setUsers(data)
     } catch (error) {
       console.error('Error fetching users:', error)
@@ -31,7 +31,7 @@ export function Users() {
 
   const calculateUserDebts = async () => {
     try {
-      const allOrders = await mockDatabase.getOrders()
+      const allOrders = await database.getOrders()
       const debts: Record<string, number> = {}
       
       // Calculer les dettes pour chaque utilisateur
@@ -49,7 +49,7 @@ export function Users() {
 
   const fetchUserOrders = async (userId: string) => {
     try {
-      const data = await mockDatabase.getUserOrders(userId)
+      const data = await database.getUserOrders(userId)
       setUserOrders(data)
     } catch (error) {
       console.error('Error fetching user orders:', error)
@@ -58,7 +58,7 @@ export function Users() {
 
   const confirmPayment = async (orderId: string) => {
     try {
-      await mockDatabase.updateOrder(orderId, { 
+      await database.updateOrder(orderId, { 
         status: 'confirmed'
       })
       if (selectedUser) {
@@ -76,7 +76,7 @@ export function Users() {
     if (!selectedUser || !addDebtAmount) return
 
     try {
-      await mockDatabase.createOrder({
+      await database.createOrder({
         user_id: selectedUser.id,
         total_amount: parseFloat(addDebtAmount),
         items: []
@@ -246,12 +246,6 @@ export function Users() {
 
   return (
     <div className="space-y-4">
-      <div className="card bg-blue-50 border-blue-200">
-        <p className="text-sm text-blue-700">
-          💡 Données de démonstration - Gestion factice des utilisateurs.
-        </p>
-      </div>
-      
       {/* Barre de recherche et filtres */}
       <div className="space-y-4">
         {/* Recherche */}

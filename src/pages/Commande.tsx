@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { Plus, Minus, ShoppingCart, Package, Search, Filter } from 'lucide-react'
-import { mockDatabase } from '../lib/mockDatabase'
+import { database } from '../lib/database'
 import { useAuth } from '../contexts/AuthContext'
-import type { Product } from '../lib/mockData'
+import type { Product } from '../lib/database'
 
 interface CartItem {
   product: Product
@@ -27,7 +27,7 @@ export function Commande() {
 
   const fetchProducts = async () => {
     try {
-      const data = await mockDatabase.getProducts(true)
+      const data = await database.getProducts(true)
       setProducts(data)
     } catch (error) {
       console.error('Error fetching products:', error)
@@ -38,7 +38,7 @@ export function Commande() {
 
   const fetchCategories = async () => {
     try {
-      const data = await mockDatabase.getCategories()
+      const data = await database.getCategories()
       setCategories(data)
     } catch (error) {
       console.error('Error fetching categories:', error)
@@ -108,7 +108,7 @@ export function Commande() {
     if (!product.stock_enabled) return null
     
     if (product.stock_variants && variant) {
-      const variantStock = product.stock_variants.find(v => v.name === variant)
+      const variantStock = product.stock_variants.find((v: any) => v.name === variant)
       return variantStock ? variantStock.quantity : 0
     }
     
@@ -138,7 +138,7 @@ export function Commande() {
         variant: item.selectedVariant
       }))
 
-      await mockDatabase.createOrder({
+      await database.createOrder({
         user_id: user.id,
         total_amount: totalAmount,
         items
@@ -213,15 +213,6 @@ export function Commande() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Commander</h1>
-        <div className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-          Mode démo
-        </div>
-      </div>
-
-      <div className="card bg-blue-50 border-blue-200">
-        <p className="text-sm text-blue-700">
-          💡 Produits de démonstration. Toutes les commandes sont simulées.
-        </p>
       </div>
 
       {/* Barre de recherche et filtres */}
@@ -310,7 +301,7 @@ export function Commande() {
             {categoryProducts.map((product) => (
               <div key={product.id} className="w-full">
                 {/* Produit avec gestion de stock par variantes */}
-                {product.stock_enabled && product.stock_variants && product.stock_variants.length > 0 ? (
+                {product.stock_enabled && product.stock_variants && Array.isArray(product.stock_variants) && product.stock_variants.length > 0 ? (
                   <div className="card">
                     <div className="flex space-x-3 mb-4">
                       {product.image_url && (
@@ -337,7 +328,7 @@ export function Commande() {
                         <span>Choisir une taille/variante :</span>
                       </h4>
                       
-                      {product.stock_variants.map((variant) => {
+                      {product.stock_variants.map((variant: any) => {
                         const quantity = getQuantity(product.id, variant.name)
                         const isOutOfStock = variant.quantity <= 0
                         const isLowStock = variant.quantity <= 3 && variant.quantity > 0

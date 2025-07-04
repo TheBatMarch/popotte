@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { Plus, Edit, Trash2, Save, X, FolderPlus, Check, ChevronUp, ChevronDown } from 'lucide-react'
-import { mockDatabase } from '../../lib/mockDatabase'
+import { database } from '../../lib/database'
 import { ImageUpload } from '../../components/ImageUpload'
-import type { Product, Category } from '../../lib/mockData'
+import type { Product, Category } from '../../lib/database'
 
 export function Products() {
   const [products, setProducts] = useState<Product[]>([])
@@ -35,7 +35,7 @@ export function Products() {
 
   const fetchProducts = async () => {
     try {
-      const data = await mockDatabase.getProducts()
+      const data = await database.getProducts()
       setProducts(data)
     } catch (error) {
       console.error('Error fetching products:', error)
@@ -46,7 +46,7 @@ export function Products() {
 
   const fetchCategories = async () => {
     try {
-      const data = await mockDatabase.getCategories()
+      const data = await database.getCategories()
       setCategories(data)
     } catch (error) {
       console.error('Error fetching categories:', error)
@@ -64,19 +64,20 @@ export function Products() {
         category_id: productFormData.category_id || null,
         image_url: productFormData.image_url || null,
         is_available: productFormData.is_available,
+        display_order: 0,
         stock_enabled: productFormData.stock_enabled,
         stock_quantity: productFormData.stock_enabled && !productFormData.stock_variants.length 
           ? parseInt(productFormData.stock_quantity) || 0 
-          : undefined,
+          : null,
         stock_variants: productFormData.stock_enabled && productFormData.stock_variants.length > 0 
           ? productFormData.stock_variants 
-          : undefined
+          : null
       }
 
       if (editingProduct) {
-        await mockDatabase.updateProduct(editingProduct.id, productData)
+        await database.updateProduct(editingProduct.id, productData)
       } else {
-        await mockDatabase.createProduct(productData)
+        await database.createProduct(productData)
       }
 
       setProductFormData({
@@ -103,8 +104,10 @@ export function Products() {
     e.preventDefault()
     
     try {
-      await mockDatabase.createCategory({
-        name: categoryFormData.name
+      await database.createCategory({
+        name: categoryFormData.name,
+        slug: categoryFormData.name.toLowerCase().replace(/\s+/g, '-'),
+        display_order: categories.length
       })
 
       setCategoryFormData({ name: '' })
@@ -123,7 +126,7 @@ export function Products() {
 
   const handleSaveCategory = async (categoryId: string) => {
     try {
-      await mockDatabase.updateCategory(categoryId, { name: editingCategoryName })
+      await database.updateCategory(categoryId, { name: editingCategoryName })
       setEditingCategory(null)
       setEditingCategoryName('')
       fetchCategories()
@@ -141,7 +144,7 @@ export function Products() {
 
   const moveCategoryUp = async (categoryId: string) => {
     try {
-      await mockDatabase.moveCategoryUp(categoryId)
+      await database.moveCategoryUp(categoryId)
       fetchCategories()
       fetchProducts()
     } catch (error: any) {
@@ -151,7 +154,7 @@ export function Products() {
 
   const moveCategoryDown = async (categoryId: string) => {
     try {
-      await mockDatabase.moveCategoryDown(categoryId)
+      await database.moveCategoryDown(categoryId)
       fetchCategories()
       fetchProducts()
     } catch (error: any) {
@@ -184,7 +187,7 @@ export function Products() {
     if (!confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) return
 
     try {
-      await mockDatabase.deleteProduct(productId)
+      await database.deleteProduct(productId)
       fetchProducts()
       alert('Produit supprimé !')
     } catch (error: any) {
@@ -258,12 +261,6 @@ export function Products() {
 
   return (
     <div className="space-y-6">
-      <div className="card bg-blue-50 border-blue-200">
-        <p className="text-sm text-blue-700">
-          💡 Mode démonstration - Les produits et catégories sont stockés temporairement.
-        </p>
-      </div>
-
       <div className="flex items-center justify-between">
         <div className="flex space-x-2">
           {!isCreatingProduct && !isCreatingCategory && (
@@ -695,10 +692,10 @@ export function Products() {
                          {/* Affichage du stock */}
                          {product.stock_enabled && (
                            <div className="mt-2">
-                             {product.stock_variants && product.stock_variants.length > 0 ? (
+                             {product.stock_variants && Array.isArray(product.stock_variants) && product.stock_variants.length > 0 ? (
                                <div className="space-y-1">
                                  <p className="text-xs font-medium text-gray-600">Stock par variante :</p>
-                                 {product.stock_variants.map((variant, index) => (
+                                 {product.stock_variants.map((variant: any, index: number) => (
                                    <div key={index} className="text-xs text-gray-500 flex justify-between">
                                      <span>{variant.name}</span>
                                      <span className={variant.quantity === 0 ? 'text-red-600 font-medium' : variant.quantity <= 3 ? 'text-orange-600 font-medium' : 'text-green-600'}>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { mockDatabase } from '../../lib/mockDatabase'
-import type { Order } from '../../lib/mockData'
+import { database } from '../../lib/database'
+import type { Order } from '../../lib/database'
 
 export function Orders() {
   const [orders, setOrders] = useState<Order[]>([])
@@ -12,7 +12,7 @@ export function Orders() {
 
   const fetchOrders = async () => {
     try {
-      const data = await mockDatabase.getOrders()
+      const data = await database.getOrders()
       setOrders(data)
     } catch (error) {
       console.error('Error fetching orders:', error)
@@ -23,7 +23,7 @@ export function Orders() {
 
   const confirmPayment = async (orderId: string) => {
     try {
-      await mockDatabase.updateOrder(orderId, { 
+      await database.updateOrder(orderId, { 
         status: 'confirmed'
       })
       
@@ -88,12 +88,6 @@ export function Orders() {
 
   return (
     <div className="space-y-6">
-      <div className="card bg-blue-50 border-blue-200">
-        <p className="text-sm text-blue-700">
-          💡 Données de démonstration - Vérification factice des paiements.
-        </p>
-      </div>
-
       <div className="card text-center">
         <div className="text-2xl font-bold text-orange-600">{notifiedOrders.length}</div>
         <div className="text-sm text-gray-600">Paiements à vérifier</div>

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { Plus, Edit, Trash2, Save, X } from 'lucide-react'
-import { mockDatabase } from '../../lib/mockDatabase'
+import { database } from '../../lib/database'
 import { ImageUpload } from '../../components/ImageUpload'
-import type { NewsPost } from '../../lib/mockData'
+import type { NewsPost } from '../../lib/database'
 
 export function News() {
   const [posts, setPosts] = useState<NewsPost[]>([])
@@ -23,7 +23,7 @@ export function News() {
 
   const fetchPosts = async () => {
     try {
-      const data = await mockDatabase.getNews()
+      const data = await database.getNews()
       setPosts(data)
     } catch (error) {
       console.error('Error fetching posts:', error)
@@ -37,7 +37,7 @@ export function News() {
     
     try {
       if (editingPost) {
-        await mockDatabase.updateNews(editingPost.id, {
+        await database.updateNews(editingPost.id, {
           title: formData.title,
           content: formData.content,
           excerpt: formData.excerpt || null,
@@ -45,12 +45,13 @@ export function News() {
           published: formData.published
         })
       } else {
-        await mockDatabase.createNews({
+        await database.createNews({
           title: formData.title,
           content: formData.content,
           excerpt: formData.excerpt || null,
           image_url: formData.image_url || null,
-          published: formData.published
+          published: formData.published,
+          author_id: null
         })
       }
 
@@ -80,7 +81,7 @@ export function News() {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) return
 
     try {
-      await mockDatabase.deleteNews(postId)
+      await database.deleteNews(postId)
       fetchPosts()
       alert('Article supprimé !')
     } catch (error: any) {
@@ -114,12 +115,6 @@ export function News() {
 
   return (
     <div className="space-y-6">
-      <div className="card bg-blue-50 border-blue-200">
-        <p className="text-sm text-blue-700">
-          💡 Mode démonstration - Les articles sont stockés temporairement.
-        </p>
-      </div>
-
       <div className="flex items-center justify-between">
         {!isCreating && (
           <button

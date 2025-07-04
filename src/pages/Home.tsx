@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { Settings, Calendar } from 'lucide-react'
-import { mockDatabase } from '../lib/mockDatabase'
-import { useAuth } from '../contexts/AuthContext'
-import type { NewsPost } from '../lib/mockData'
+import { Calendar } from 'lucide-react'
+import { database } from '../lib/database'
+import type { NewsPost } from '../lib/database'
 
 const logoUrl = '/ChatGPT Image 4 juil. 2025, 23_49_33.png'
 
 export function Home() {
-  const { profile } = useAuth()
   const [newsPosts, setNewsPosts] = useState<NewsPost[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -18,7 +15,7 @@ export function Home() {
 
   const fetchNewsPosts = async () => {
     try {
-      const data = await mockDatabase.getNews(true)
+      const data = await database.getNews(true)
       setNewsPosts(data)
     } catch (error) {
       console.error('Error fetching news posts:', error)

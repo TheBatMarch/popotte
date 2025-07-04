@@ -43,11 +43,6 @@ export function Auth() {
           <p className="mt-2 text-gray-600">
             {isLogin ? 'Connectez-vous à votre compte' : 'Rejoignez notre association'}
           </p>
-          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-700">
-              💡 Mode démo : utilisez n'importe quel email et le mot de passe "password"
-            </p>
-          </div>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -102,7 +97,7 @@ export function Auth() {
                 type="password"
                 required
                 className="input mt-1"
-                placeholder="password"
+                placeholder="Votre mot de passe"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />

@@ -3,19 +3,15 @@ import {
   LogOut, 
   User, 
   Shield, 
-  Edit, 
   Users, 
   CreditCard, 
   FileText, 
   Package,
-  Save,
-  X,
   ArrowLeft,
-  TrendingUp,
-  DollarSign
+  TrendingUp
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
-import { mockDatabase } from '../lib/mockDatabase'
+import { database } from '../lib/database'
 
 // Import des composants admin
 import { Users as UsersComponent } from './admin/Users'
@@ -27,12 +23,8 @@ import { Profile as ProfileComponent } from './Profile'
 type CurrentView = 'main' | 'users' | 'orders' | 'news' | 'products' | 'profile'
 
 export function Parametres() {
-  const { profile, signOut, updateProfile } = useAuth()
+  const { profile, signOut } = useAuth()
   const [currentView, setCurrentView] = useState<CurrentView>('main')
-  const [editingProfile, setEditingProfile] = useState(false)
-  const [fullName, setFullName] = useState(profile?.full_name || '')
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('')
   const [stats, setStats] = useState({
     totalDebts: 0,
     salesCurrentYear: 0,
@@ -49,7 +41,7 @@ export function Parametres() {
 
   const fetchStats = async () => {
     try {
-      const orders = await mockDatabase.getOrders()
+      const orders = await database.getOrders()
       const currentYear = new Date().getFullYear()
       
       // Total des dettes en cours (commandes pending)
@@ -100,30 +92,6 @@ export function Parametres() {
     } catch (error) {
       console.error('Error signing out:', error)
     }
-  }
-
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!profile) return
-
-    setLoading(true)
-    setMessage('')
-
-    try {
-      await updateProfile({ full_name: fullName })
-      setMessage('Informations mises à jour avec succès !')
-      setEditingProfile(false)
-    } catch (error: any) {
-      setMessage('Erreur lors de la mise à jour : ' + error.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const cancelEdit = () => {
-    setEditingProfile(false)
-    setFullName(profile?.full_name || '')
-    setMessage('')
   }
 
   const renderCurrentView = () => {

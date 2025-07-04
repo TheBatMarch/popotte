@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { CreditCard, ExternalLink, Bell } from 'lucide-react'
-import { mockDatabase } from '../lib/mockDatabase'
+import { database } from '../lib/database'
 import { useAuth } from '../contexts/AuthContext'
-import type { Order } from '../lib/mockData'
+import type { Order } from '../lib/database'
 
 export function Dettes() {
   const { user } = useAuth()
@@ -20,7 +20,7 @@ export function Dettes() {
     if (!user) return
 
     try {
-      const data = await mockDatabase.getOrders(user.id)
+      const data = await database.getOrders(user.id)
       setOrders(data)
     } catch (error) {
       console.error('Error fetching orders:', error)
@@ -40,7 +40,7 @@ export function Dettes() {
       const pendingOrderIds = pendingOrders.map(order => order.id)
       
       for (const orderId of pendingOrderIds) {
-        await mockDatabase.updateOrder(orderId, { 
+        await database.updateOrder(orderId, { 
           status: 'payment_notified'
         })
       }
@@ -82,15 +82,6 @@ export function Dettes() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Mes Dettes</h1>
-        <div className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-          Mode démo
-        </div>
-      </div>
-
-      <div className="card bg-blue-50 border-blue-200">
-        <p className="text-sm text-blue-700">
-          💡 Données de démonstration. Les paiements sont simulés.
-        </p>
       </div>
 
       {/* Dettes non réglées */}
@@ -176,9 +167,9 @@ export function Dettes() {
                 </span>
               </div>
               
-              {order.payment_initiated_at && (
+              {order.payment_notified_at && (
                 <div className="text-xs text-orange-600 mb-2">
-                  Paiement notifié: {formatDate(order.payment_notified_at!)}
+                  Paiement notifié: {formatDate(order.payment_notified_at)}
                 </div>
               )}
               
