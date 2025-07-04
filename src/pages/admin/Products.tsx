@@ -213,7 +213,8 @@ export function Products() {
       await mockDatabase.moveProductUp(productId, categoryId || '')
       fetchProducts()
     } catch (error: any) {
-      alert('Erreur : ' + error.message)
+      console.error('Error moving product up:', error)
+      alert('Erreur lors du déplacement : ' + error.message)
     }
   }
 
@@ -222,7 +223,8 @@ export function Products() {
       await mockDatabase.moveProductDown(productId, categoryId || '')
       fetchProducts()
     } catch (error: any) {
-      alert('Erreur : ' + error.message)
+      console.error('Error moving product down:', error)
+      alert('Erreur lors du déplacement : ' + error.message)
     }
   }
 

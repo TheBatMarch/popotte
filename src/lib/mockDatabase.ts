@@ -112,9 +112,12 @@ class MockDatabase {
   async moveProductUp(productId: string, categoryId: string): Promise<void> {
     await this.delay()
     
+    // Gérer le cas des produits sans catégorie
+    const actualCategoryId = categoryId || null
+    
     // Récupérer tous les produits de la même catégorie, triés par display_order
     const categoryProducts = this.products
-      .filter(p => p.category_id === categoryId)
+      .filter(p => p.category_id === actualCategoryId)
       .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
     
     const productIndex = categoryProducts.findIndex(p => p.id === productId)
@@ -140,9 +143,12 @@ class MockDatabase {
   async moveProductDown(productId: string, categoryId: string): Promise<void> {
     await this.delay()
     
+    // Gérer le cas des produits sans catégorie
+    const actualCategoryId = categoryId || null
+    
     // Récupérer tous les produits de la même catégorie, triés par display_order
     const categoryProducts = this.products
-      .filter(p => p.category_id === categoryId)
+      .filter(p => p.category_id === actualCategoryId)
       .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
     
     const productIndex = categoryProducts.findIndex(p => p.id === productId)
