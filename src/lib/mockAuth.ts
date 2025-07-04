@@ -1,6 +1,14 @@
 // Système d'authentification factice
 import { MOCK_USERS, DEFAULT_USER, type User } from './mockData'
 
+// Stockage des mots de passe (en production, ils seraient hashés)
+const USER_PASSWORDS: Record<string, string> = {
+  'admin@popotte.fr': 'password',
+  'marie.dupont@email.fr': 'password',
+  'jean.martin@email.fr': 'password',
+  'sophie.bernard@email.fr': 'password'
+}
+
 class MockAuth {
   private currentUser: User | null = null
   private listeners: ((user: User | null) => void)[] = []
@@ -25,7 +33,7 @@ class MockAuth {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         const user = MOCK_USERS.find(u => u.email === email)
-        if (user && password === 'password') {
+        if (user && USER_PASSWORDS[email] === password) {
           this.currentUser = user
           localStorage.setItem('mockUser', JSON.stringify(user))
           this.notifyListeners()
@@ -50,11 +58,13 @@ class MockAuth {
           id: `user-${Date.now()}`,
           email,
           full_name: fullName,
+          username: email.split('@')[0], // Utiliser la partie avant @ comme username par défaut
           role: 'user',
           created_at: new Date().toISOString()
         }
 
         MOCK_USERS.push(newUser)
+        USER_PASSWORDS[email] = password
         this.currentUser = newUser
         localStorage.setItem('mockUser', JSON.stringify(newUser))
         this.notifyListeners()
@@ -93,6 +103,25 @@ class MockAuth {
 
         this.notifyListeners()
         resolve(this.currentUser)
+      }, 300)
+    })
+  }
+
+  changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        if (!this.currentUser) {
+          reject(new Error('Aucun utilisateur connecté'))
+          return
+        }
+
+        if (USER_PASSWORDS[this.currentUser.email] !== currentPassword) {
+          reject(new Error('Mot de passe actuel incorrect'))
+          return
+        }
+
+        USER_PASSWORDS[this.currentUser.email] = newPassword
+        resolve()
       }, 300)
     })
   }

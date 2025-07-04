@@ -3,6 +3,7 @@ export interface User {
   id: string
   email: string
   full_name: string
+  username: string
   role: 'user' | 'admin'
   created_at: string
 }
@@ -74,6 +75,7 @@ export const MOCK_USERS: User[] = [
     id: 'user-1',
     email: 'admin@popotte.fr',
     full_name: 'Administrateur Popotte',
+    username: 'admin',
     role: 'admin',
     created_at: '2024-01-01T00:00:00Z'
   },
@@ -81,6 +83,7 @@ export const MOCK_USERS: User[] = [
     id: 'user-2',
     email: 'marie.dupont@email.fr',
     full_name: 'Marie Dupont',
+    username: 'marie',
     role: 'user',
     created_at: '2024-01-15T00:00:00Z'
   },
@@ -88,6 +91,7 @@ export const MOCK_USERS: User[] = [
     id: 'user-3',
     email: 'jean.martin@email.fr',
     full_name: 'Jean Martin',
+    username: 'jean',
     role: 'user',
     created_at: '2024-02-01T00:00:00Z'
   },
@@ -95,6 +99,7 @@ export const MOCK_USERS: User[] = [
     id: 'user-4',
     email: 'sophie.bernard@email.fr',
     full_name: 'Sophie Bernard',
+    username: 'sophie',
     role: 'user',
     created_at: '2024-02-15T00:00:00Z'
   }

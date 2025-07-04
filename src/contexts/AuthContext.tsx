@@ -10,6 +10,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<void>
   signOut: () => Promise<void>
   updateProfile: (updates: Partial<User>) => Promise<void>
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -51,6 +52,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await mockAuth.updateProfile(updates)
   }
 
+  const changePassword = async (currentPassword: string, newPassword: string) => {
+    await mockAuth.changePassword(currentPassword, newPassword)
+  }
+
   const value = {
     user,
     profile: user, // Dans notre cas, user et profile sont identiques
@@ -59,6 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signOut,
     updateProfile,
+    changePassword,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
