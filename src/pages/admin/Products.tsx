@@ -208,18 +208,18 @@ export function Products() {
     setIsCreatingCategory(false)
   }
 
-  const moveProductUp = async (productId: string, categoryId: string) => {
+  const moveProductUp = async (productId: string, categoryId: string | null) => {
     try {
-      await mockDatabase.moveProductUp(productId, categoryId)
+      await mockDatabase.moveProductUp(productId, categoryId || '')
       fetchProducts()
     } catch (error: any) {
       alert('Erreur : ' + error.message)
     }
   }
 
-  const moveProductDown = async (productId: string, categoryId: string) => {
+  const moveProductDown = async (productId: string, categoryId: string | null) => {
     try {
-      await mockDatabase.moveProductDown(productId, categoryId)
+      await mockDatabase.moveProductDown(productId, categoryId || '')
       fetchProducts()
     } catch (error: any) {
       alert('Erreur : ' + error.message)
