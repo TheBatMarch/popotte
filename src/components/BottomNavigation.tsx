@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, ShoppingCart, CreditCard, Settings } from 'lucide-react'
+import { Home, ClipboardList, CreditCard, Settings } from 'lucide-react'
 
 export function BottomNavigation() {
   const location = useLocation()
@@ -25,7 +25,7 @@ export function BottomNavigation() {
             isActive('/commande') ? 'text-primary-500' : 'text-gray-500 hover:text-gray-700'
           }`}
         >
-          <ShoppingCart size={24} />
+          <ClipboardList size={24} />
           <span className="text-xs mt-1">Commande</span>
         </Link>
         
