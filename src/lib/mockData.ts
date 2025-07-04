@@ -44,6 +44,7 @@ export interface Order {
   total_amount: number
   status: 'pending' | 'payment_notified' | 'confirmed' | 'cancelled'
   payment_initiated_at: string | null
+  confirmed_at: string | null
   created_at: string
   order_items: OrderItem[]
   profiles?: {

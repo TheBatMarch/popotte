@@ -194,6 +194,7 @@ class MockDatabase {
       total_amount: data.total_amount,
       status: 'pending',
       payment_initiated_at: null,
+      confirmed_at: null,
       created_at: new Date().toISOString(),
       order_items: orderItems,
       profiles: user ? { full_name: user.full_name, email: user.email } : undefined

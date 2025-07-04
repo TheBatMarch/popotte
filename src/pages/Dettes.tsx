@@ -8,7 +8,7 @@ export function Dettes() {
   const { user } = useAuth()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
-  const [paymentInitiated, setPaymentInitiated] = useState<Record<string, boolean>>({})
+  const [paymentInitiated, setPaymentInitiated] = useState(false)
 
   useEffect(() => {
     if (user) {
@@ -29,18 +29,24 @@ export function Dettes() {
     }
   }
 
-  const initiatePayment = (orderId: string) => {
-    setPaymentInitiated(prev => ({ ...prev, [orderId]: true }))
+  const handlePaymentClick = () => {
+    // Simuler le clic sur le lien PayPal
+    setPaymentInitiated(true)
   }
 
-  const notifyPayment = async (orderId: string) => {
+  const notifyPayment = async () => {
     try {
-      await mockDatabase.updateOrder(orderId, { 
-        status: 'payment_notified',
-        payment_initiated_at: new Date().toISOString()
-      })
+      // Notifier le paiement pour toutes les commandes en attente
+      const pendingOrderIds = pendingOrders.map(order => order.id)
       
-      setPaymentInitiated(prev => ({ ...prev, [orderId]: false }))
+      for (const orderId of pendingOrderIds) {
+        await mockDatabase.updateOrder(orderId, { 
+          status: 'payment_notified',
+          payment_initiated_at: new Date().toISOString()
+        })
+      }
+      
+      setPaymentInitiated(false)
       fetchOrders()
       alert('Paiement notifié aux popottiers !')
     } catch (error) {
@@ -64,7 +70,6 @@ export function Dettes() {
   const confirmedOrders = orders.filter(order => order.status === 'confirmed')
 
   const pendingTotal = pendingOrders.reduce((sum, order) => sum + order.total_amount, 0)
-  const hasInitiatedPayments = Object.values(paymentInitiated).some(initiated => initiated)
 
   if (loading) {
     return (
@@ -91,7 +96,7 @@ export function Dettes() {
 
       {/* Dettes non réglées */}
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-red-600">Dettes non réglées</h2>
+        <h2 className="text-lg font-semibold text-red-600">🔴 Dettes non réglées</h2>
         
         {pendingOrders.length === 0 ? (
           <div className="card text-center py-8">
@@ -100,7 +105,7 @@ export function Dettes() {
         ) : (
           <>
             {pendingOrders.map((order) => (
-              <div key={order.id} className="card border-l-4 border-red-500">
+              <div key={order.id} className="card border-l-4 border-red-500 bg-red-50">
                 <div className="flex justify-between items-start mb-2">
                   <span className="text-sm text-gray-500">
                     {formatDate(order.created_at)}
@@ -110,7 +115,7 @@ export function Dettes() {
                   </span>
                 </div>
                 
-                <div className="space-y-1">
+                <div className="space-y-1 mb-3">
                   {order.order_items.map((item) => (
                     <div key={item.id} className="text-sm text-gray-600">
                       {item.quantity}x {item.products.name} - {item.total_price.toFixed(2)} €
@@ -128,14 +133,12 @@ export function Dettes() {
                 </span>
               </div>
               
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <a
                   href="https://paypal.me/popotte"
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={() => {
-                    pendingOrders.forEach(order => initiatePayment(order.id))
-                  }}
+                  onClick={handlePaymentClick}
                   className="w-full btn-primary flex items-center justify-center space-x-2"
                 >
                   <CreditCard size={20} />
@@ -143,16 +146,10 @@ export function Dettes() {
                   <ExternalLink size={16} />
                 </a>
                 
-                {hasInitiatedPayments && (
+                {paymentInitiated && (
                   <button
-                    onClick={() => {
-                      pendingOrders.forEach(order => {
-                        if (paymentInitiated[order.id]) {
-                          notifyPayment(order.id)
-                        }
-                      })
-                    }}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+                    onClick={notifyPayment}
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
                   >
                     <Bell size={20} />
                     <span>Notifier mon paiement aux popottiers</span>
@@ -164,23 +161,29 @@ export function Dettes() {
         )}
       </div>
 
-      {/* Paiements en attente de confirmation */}
+      {/* Dettes en attente de confirmation */}
       {notifiedOrders.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-orange-600">Dettes en attente de confirmation</h2>
+          <h2 className="text-lg font-semibold text-orange-600">🟠 Dettes en attente de confirmation</h2>
           
           {notifiedOrders.map((order) => (
             <div key={order.id} className="card border-l-4 border-orange-500 bg-orange-50">
               <div className="flex justify-between items-start mb-2">
                 <span className="text-sm text-gray-500">
-                  {formatDate(order.created_at)}
+                  Commande: {formatDate(order.created_at)}
                 </span>
                 <span className="font-semibold text-orange-600">
                   {order.total_amount.toFixed(2)} €
                 </span>
               </div>
               
-              <div className="space-y-1">
+              {order.payment_initiated_at && (
+                <div className="text-xs text-orange-600 mb-2">
+                  Paiement notifié: {formatDate(order.payment_initiated_at)}
+                </div>
+              )}
+              
+              <div className="space-y-1 mb-3">
                 {order.order_items.map((item) => (
                   <div key={item.id} className="text-sm text-gray-600">
                     {item.quantity}x {item.products.name} - {item.total_price.toFixed(2)} €
@@ -188,7 +191,7 @@ export function Dettes() {
                 ))}
               </div>
               
-              <div className="mt-2 text-sm text-orange-600 font-medium">
+              <div className="text-sm text-orange-700 font-medium bg-orange-100 p-2 rounded">
                 ⏳ En attente de confirmation par les popottiers
               </div>
             </div>
@@ -199,20 +202,26 @@ export function Dettes() {
       {/* Dettes réglées */}
       {confirmedOrders.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-green-600">Dettes réglées</h2>
+          <h2 className="text-lg font-semibold text-green-600">🟢 Dettes réglées</h2>
           
           {confirmedOrders.map((order) => (
             <div key={order.id} className="card border-l-4 border-green-500 bg-green-50">
               <div className="flex justify-between items-start mb-2">
                 <span className="text-sm text-gray-500">
-                  {formatDate(order.created_at)}
+                  Commande: {formatDate(order.created_at)}
                 </span>
                 <span className="font-semibold text-green-600">
                   {order.total_amount.toFixed(2)} €
                 </span>
               </div>
               
-              <div className="space-y-1">
+              {order.confirmed_at && (
+                <div className="text-xs text-green-600 mb-2">
+                  Confirmé: {formatDate(order.confirmed_at)}
+                </div>
+              )}
+              
+              <div className="space-y-1 mb-3">
                 {order.order_items.map((item) => (
                   <div key={item.id} className="text-sm text-gray-600">
                     {item.quantity}x {item.products.name} - {item.total_price.toFixed(2)} €
@@ -220,7 +229,7 @@ export function Dettes() {
                 ))}
               </div>
               
-              <div className="mt-2 text-sm text-green-600 font-medium">
+              <div className="text-sm text-green-700 font-medium bg-green-100 p-2 rounded">
                 ✅ Paiement confirmé
               </div>
             </div>
