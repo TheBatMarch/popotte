@@ -1,29 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import { Shield } from 'lucide-react'
-import { supabase } from '../../lib/supabase'
-
-interface User {
-  id: string
-  email: string
-  full_name: string
-  role: string
-  created_at: string
-}
-
-interface UserOrder {
-  id: string
-  total_amount: number
-  status: 'pending' | 'payment_notified' | 'confirmed' | 'cancelled'
-  created_at: string
-}
+import { mockDatabase } from '../../lib/mockDatabase'
+import type { User, Order } from '../../lib/mockData'
 
 export function Users() {
   const [users, setUsers] = useState<User[]>([])
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
-  const [userOrders, setUserOrders] = useState<UserOrder[]>([])
+  const [userOrders, setUserOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [addDebtAmount, setAddDebtAmount] = useState('')
-  const [addDebtDescription, setAddDebtDescription] = useState('')
 
   useEffect(() => {
     fetchUsers()
@@ -31,13 +16,8 @@ export function Users() {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-      setUsers(data || [])
+      const data = await mockDatabase.getUsers()
+      setUsers(data)
     } catch (error) {
       console.error('Error fetching users:', error)
     } finally {
@@ -47,14 +27,8 @@ export function Users() {
 
   const fetchUserOrders = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-      setUserOrders(data || [])
+      const data = await mockDatabase.getUserOrders(userId)
+      setUserOrders(data)
     } catch (error) {
       console.error('Error fetching user orders:', error)
     }
@@ -62,12 +36,7 @@ export function Users() {
 
   const confirmPayment = async (orderId: string) => {
     try {
-      const { error } = await supabase
-        .from('orders')
-        .update({ status: 'confirmed' })
-        .eq('id', orderId)
-
-      if (error) throw error
+      await mockDatabase.updateOrder(orderId, { status: 'confirmed' })
       
       if (selectedUser) {
         fetchUserOrders(selectedUser.id)
@@ -80,21 +49,16 @@ export function Users() {
   }
 
   const addDebt = async () => {
-    if (!selectedUser || !addDebtAmount || !addDebtDescription) return
+    if (!selectedUser || !addDebtAmount) return
 
     try {
-      const { error } = await supabase
-        .from('orders')
-        .insert({
-          user_id: selectedUser.id,
-          total_amount: parseFloat(addDebtAmount),
-          status: 'pending'
-        })
-
-      if (error) throw error
+      await mockDatabase.createOrder({
+        user_id: selectedUser.id,
+        total_amount: parseFloat(addDebtAmount),
+        items: []
+      })
 
       setAddDebtAmount('')
-      setAddDebtDescription('')
       fetchUserOrders(selectedUser.id)
       alert('Dette ajoutée avec succès !')
     } catch (error) {
@@ -190,17 +154,10 @@ export function Users() {
               onChange={(e) => setAddDebtAmount(e.target.value)}
               className="input"
             />
-            <input
-              type="text"
-              placeholder="Description"
-              value={addDebtDescription}
-              onChange={(e) => setAddDebtDescription(e.target.value)}
-              className="input"
-            />
             <button
               onClick={addDebt}
               className="btn-primary"
-              disabled={!addDebtAmount || !addDebtDescription}
+              disabled={!addDebtAmount}
             >
               Ajouter la dette
             </button>
@@ -248,6 +205,12 @@ export function Users() {
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">Gestion des utilisateurs</h2>
+      
+      <div className="card bg-blue-50 border-blue-200">
+        <p className="text-sm text-blue-700">
+          💡 Données de démonstration - Gestion factice des utilisateurs.
+        </p>
+      </div>
       
       {users.length === 0 ? (
         <div className="card text-center py-8">

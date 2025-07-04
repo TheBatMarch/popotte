@@ -1,19 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Settings, Calendar } from 'lucide-react'
-import { supabase } from '../lib/supabase'
+import { mockDatabase } from '../lib/mockDatabase'
 import { useAuth } from '../contexts/AuthContext'
+import type { NewsPost } from '../lib/mockData'
 
 const logoUrl = '/ChatGPT Image 4 juil. 2025, 15_38_15.png'
-
-interface NewsPost {
-  id: string
-  title: string
-  content: string
-  excerpt: string | null
-  image_url: string | null
-  created_at: string
-}
 
 export function Home() {
   const { profile } = useAuth()
@@ -26,14 +18,8 @@ export function Home() {
 
   const fetchNewsPosts = async () => {
     try {
-      const { data, error } = await supabase
-        .from('news')
-        .select('*')
-        .eq('published', true)
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-      setNewsPosts(data || [])
+      const data = await mockDatabase.getNews(true)
+      setNewsPosts(data)
     } catch (error) {
       console.error('Error fetching news posts:', error)
     } finally {
@@ -77,6 +63,11 @@ export function Home() {
         <p className="text-gray-600">
           Découvrez les dernières actualités de notre association et passez vos commandes facilement.
         </p>
+        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-700">
+            💡 Application en mode démonstration avec du contenu factice.
+          </p>
+        </div>
       </div>
 
       <div className="space-y-4">

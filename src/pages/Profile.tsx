@@ -1,9 +1,8 @@
 import React, { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { supabase } from '../lib/supabase'
 
 export function Profile() {
-  const { profile } = useAuth()
+  const { profile, updateProfile } = useAuth()
   const [fullName, setFullName] = useState(profile?.full_name || '')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
@@ -16,13 +15,7 @@ export function Profile() {
     setMessage('')
 
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ full_name: fullName })
-        .eq('id', profile.id)
-
-      if (error) throw error
-
+      await updateProfile({ full_name: fullName })
       setMessage('Informations mises à jour avec succès !')
     } catch (error: any) {
       setMessage('Erreur lors de la mise à jour : ' + error.message)
@@ -34,6 +27,12 @@ export function Profile() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-900">Mon Profil</h1>
+
+      <div className="card bg-blue-50 border-blue-200">
+        <p className="text-sm text-blue-700">
+          💡 Mode démonstration - Les modifications sont temporaires.
+        </p>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {message && (

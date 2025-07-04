@@ -1,23 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { CreditCard, ExternalLink } from 'lucide-react'
-import { supabase } from '../lib/supabase'
+import { mockDatabase } from '../lib/mockDatabase'
 import { useAuth } from '../contexts/AuthContext'
-
-interface Order {
-  id: string
-  total_amount: number
-  status: 'pending' | 'payment_notified' | 'confirmed' | 'cancelled'
-  created_at: string
-  order_items: {
-    id: string
-    quantity: number
-    unit_price: number
-    total_price: number
-    products: {
-      name: string
-    }
-  }[]
-}
+import type { Order } from '../lib/mockData'
 
 export function Dettes() {
   const { user } = useAuth()
@@ -34,25 +19,8 @@ export function Dettes() {
     if (!user) return
 
     try {
-      const { data, error } = await supabase
-        .from('orders')
-        .select(`
-          *,
-          order_items (
-            id,
-            quantity,
-            unit_price,
-            total_price,
-            products (
-              name
-            )
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-      setOrders(data || [])
+      const data = await mockDatabase.getOrders(user.id)
+      setOrders(data)
     } catch (error) {
       console.error('Error fetching orders:', error)
     } finally {
@@ -62,17 +30,10 @@ export function Dettes() {
 
   const notifyPayment = async (orderId: string) => {
     try {
-      const { error } = await supabase
-        .from('orders')
-        .update({ 
-          status: 'payment_notified',
-          payment_notified_at: new Date().toISOString()
-        })
-        .eq('id', orderId)
-
-      if (error) throw error
+      await mockDatabase.updateOrder(orderId, { 
+        status: 'payment_notified'
+      })
       
-      // Refresh orders
       fetchOrders()
       alert('Paiement notifié aux popottiers !')
     } catch (error) {
@@ -107,7 +68,18 @@ export function Dettes() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Mes Dettes</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">Mes Dettes</h1>
+        <div className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+          Mode démo
+        </div>
+      </div>
+
+      <div className="card bg-blue-50 border-blue-200">
+        <p className="text-sm text-blue-700">
+          💡 Données de démonstration. Les paiements sont simulés.
+        </p>
+      </div>
 
       {/* Dettes non réglées */}
       <div className="space-y-4">

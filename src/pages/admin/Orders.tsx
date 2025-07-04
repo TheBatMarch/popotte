@@ -1,28 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { supabase } from '../../lib/supabase'
-
-interface OrderWithDetails {
-  id: string
-  total_amount: number
-  status: 'pending' | 'payment_notified' | 'confirmed' | 'cancelled'
-  created_at: string
-  profiles: {
-    full_name: string
-    email: string
-  }
-  order_items: {
-    id: string
-    quantity: number
-    unit_price: number
-    total_price: number
-    products: {
-      name: string
-    }
-  }[]
-}
+import { mockDatabase } from '../../lib/mockDatabase'
+import type { Order } from '../../lib/mockData'
 
 export function Orders() {
-  const [orders, setOrders] = useState<OrderWithDetails[]>([])
+  const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'pending' | 'payment_notified' | 'confirmed' | 'cancelled'>('all')
 
@@ -32,28 +13,8 @@ export function Orders() {
 
   const fetchOrders = async () => {
     try {
-      const { data, error } = await supabase
-        .from('orders')
-        .select(`
-          *,
-          profiles (
-            full_name,
-            email
-          ),
-          order_items (
-            id,
-            quantity,
-            unit_price,
-            total_price,
-            products (
-              name
-            )
-          )
-        `)
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-      setOrders(data || [])
+      const data = await mockDatabase.getOrders()
+      setOrders(data)
     } catch (error) {
       console.error('Error fetching orders:', error)
     } finally {
@@ -63,12 +24,7 @@ export function Orders() {
 
   const confirmPayment = async (orderId: string) => {
     try {
-      const { error } = await supabase
-        .from('orders')
-        .update({ status: 'confirmed' })
-        .eq('id', orderId)
-
-      if (error) throw error
+      await mockDatabase.updateOrder(orderId, { status: 'confirmed' })
       
       fetchOrders()
       alert('Paiement confirmé !')
@@ -133,6 +89,12 @@ export function Orders() {
     <div className="space-y-6">
       <h2 className="text-xl font-semibold">Gestion des commandes</h2>
 
+      <div className="card bg-blue-50 border-blue-200">
+        <p className="text-sm text-blue-700">
+          💡 Données de démonstration - Gestion factice des commandes.
+        </p>
+      </div>
+
       <div className="grid grid-cols-2 gap-4">
         <div className="card text-center">
           <div className="text-2xl font-bold text-primary-600">{stats.total}</div>
@@ -189,8 +151,8 @@ export function Orders() {
             <div key={order.id} className={`card border-l-4 ${getStatusColor(order.status)}`}>
               <div className="flex justify-between items-start mb-3">
                 <div>
-                  <h3 className="font-semibold">{order.profiles.full_name}</h3>
-                  <p className="text-sm text-gray-600">{order.profiles.email}</p>
+                  <h3 className="font-semibold">{order.profiles?.full_name}</h3>
+                  <p className="text-sm text-gray-600">{order.profiles?.email}</p>
                   <p className="text-xs text-gray-500">{formatDate(order.created_at)}</p>
                 </div>
                 <div className="text-right">

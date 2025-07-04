@@ -1,25 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Plus, Edit, Trash2, Save, X } from 'lucide-react'
-import { supabase } from '../../lib/supabase'
-
-interface Product {
-  id: string
-  name: string
-  description: string | null
-  price: number
-  category_id: string | null
-  image_url: string | null
-  is_available: boolean
-  created_at: string
-  categories?: {
-    name: string
-  }
-}
-
-interface Category {
-  id: string
-  name: string
-}
+import { mockDatabase } from '../../lib/mockDatabase'
+import type { Product, Category } from '../../lib/mockData'
 
 export function Products() {
   const [products, setProducts] = useState<Product[]>([])
@@ -43,18 +25,8 @@ export function Products() {
 
   const fetchProducts = async () => {
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select(`
-          *,
-          categories (
-            name
-          )
-        `)
-        .order('name', { ascending: true })
-
-      if (error) throw error
-      setProducts(data || [])
+      const data = await mockDatabase.getProducts()
+      setProducts(data)
     } catch (error) {
       console.error('Error fetching products:', error)
     } finally {
@@ -64,13 +36,8 @@ export function Products() {
 
   const fetchCategories = async () => {
     try {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name', { ascending: true })
-
-      if (error) throw error
-      setCategories(data || [])
+      const data = await mockDatabase.getCategories()
+      setCategories(data)
     } catch (error) {
       console.error('Error fetching categories:', error)
     }
@@ -90,23 +57,11 @@ export function Products() {
       }
 
       if (editingProduct) {
-        // Update existing product
-        const { error } = await supabase
-          .from('products')
-          .update(productData)
-          .eq('id', editingProduct.id)
-
-        if (error) throw error
+        await mockDatabase.updateProduct(editingProduct.id, productData)
       } else {
-        // Create new product
-        const { error } = await supabase
-          .from('products')
-          .insert(productData)
-
-        if (error) throw error
+        await mockDatabase.createProduct(productData)
       }
 
-      // Reset form and refresh products
       setFormData({
         name: '',
         description: '',
@@ -141,13 +96,7 @@ export function Products() {
     if (!confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) return
 
     try {
-      const { error } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', productId)
-
-      if (error) throw error
-      
+      await mockDatabase.deleteProduct(productId)
       fetchProducts()
       alert('Produit supprimé !')
     } catch (error: any) {
@@ -166,14 +115,6 @@ export function Products() {
     })
     setEditingProduct(null)
     setIsCreating(false)
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    })
   }
 
   if (loading) {
@@ -197,6 +138,12 @@ export function Products() {
             <span>Nouveau produit</span>
           </button>
         )}
+      </div>
+
+      <div className="card bg-blue-50 border-blue-200">
+        <p className="text-sm text-blue-700">
+          💡 Mode démonstration - Les produits sont stockés temporairement.
+        </p>
       </div>
 
       {isCreating && (
@@ -349,7 +296,6 @@ export function Products() {
                     {product.categories && (
                       <span>Catégorie: {product.categories.name}</span>
                     )}
-                    <span>Créé le {formatDate(product.created_at)}</span>
                   </div>
                   
                   {product.image_url && (

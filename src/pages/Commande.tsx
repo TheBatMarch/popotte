@@ -1,20 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { Plus, Minus, ShoppingCart } from 'lucide-react'
-import { supabase } from '../lib/supabase'
+import { mockDatabase } from '../lib/mockDatabase'
 import { useAuth } from '../contexts/AuthContext'
-
-interface Product {
-  id: string
-  name: string
-  description: string | null
-  price: number
-  category_id: string | null
-  image_url: string | null
-  is_available: boolean
-  categories?: {
-    name: string
-  }
-}
+import type { Product } from '../lib/mockData'
 
 interface CartItem {
   product: Product
@@ -34,19 +22,8 @@ export function Commande() {
 
   const fetchProducts = async () => {
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select(`
-          *,
-          categories (
-            name
-          )
-        `)
-        .eq('is_available', true)
-        .order('name', { ascending: true })
-
-      if (error) throw error
-      setProducts(data || [])
+      const data = await mockDatabase.getProducts(true)
+      setProducts(data)
     } catch (error) {
       console.error('Error fetching products:', error)
     } finally {
@@ -92,41 +69,29 @@ export function Commande() {
   }
 
   const submitOrder = async () => {
-    if (!user || cart.length === 0) return
+    if (!user || cart.length === 0) {
+      if (!user) {
+        alert('Vous devez être connecté pour passer une commande')
+        return
+      }
+      return
+    }
 
     setSubmitting(true)
     try {
       const totalAmount = getTotalAmount()
-
-      // Create order
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          user_id: user.id,
-          total_amount: totalAmount,
-          status: 'pending'
-        })
-        .select()
-        .single()
-
-      if (orderError) throw orderError
-
-      // Create order items
-      const orderItems = cart.map(item => ({
-        order_id: order.id,
+      const items = cart.map(item => ({
         product_id: item.product.id,
         quantity: item.quantity,
-        unit_price: item.product.price,
-        total_price: item.product.price * item.quantity
+        unit_price: item.product.price
       }))
 
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems)
+      await mockDatabase.createOrder({
+        user_id: user.id,
+        total_amount: totalAmount,
+        items
+      })
 
-      if (itemsError) throw itemsError
-
-      // Clear cart
       setCart([])
       alert('Commande validée avec succès !')
     } catch (error) {
@@ -156,7 +121,18 @@ export function Commande() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Commander</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">Commander</h1>
+        <div className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+          Mode démo
+        </div>
+      </div>
+
+      <div className="card bg-blue-50 border-blue-200">
+        <p className="text-sm text-blue-700">
+          💡 Produits de démonstration. Toutes les commandes sont simulées.
+        </p>
+      </div>
 
       {Object.entries(groupedProducts).map(([category, categoryProducts]) => (
         <div key={category} className="space-y-4">

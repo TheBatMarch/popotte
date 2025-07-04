@@ -1,17 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Plus, Edit, Trash2, Save, X } from 'lucide-react'
-import { supabase } from '../../lib/supabase'
-
-interface NewsPost {
-  id: string
-  title: string
-  content: string
-  excerpt: string | null
-  image_url: string | null
-  author_id: string | null
-  published: boolean
-  created_at: string
-}
+import { mockDatabase } from '../../lib/mockDatabase'
+import type { NewsPost } from '../../lib/mockData'
 
 export function News() {
   const [posts, setPosts] = useState<NewsPost[]>([])
@@ -32,13 +22,8 @@ export function News() {
 
   const fetchPosts = async () => {
     try {
-      const { data, error } = await supabase
-        .from('news')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-      setPosts(data || [])
+      const data = await mockDatabase.getNews()
+      setPosts(data)
     } catch (error) {
       console.error('Error fetching posts:', error)
     } finally {
@@ -51,35 +36,23 @@ export function News() {
     
     try {
       if (editingPost) {
-        // Update existing post
-        const { error } = await supabase
-          .from('news')
-          .update({
-            title: formData.title,
-            content: formData.content,
-            excerpt: formData.excerpt || null,
-            image_url: formData.image_url || null,
-            published: formData.published
-          })
-          .eq('id', editingPost.id)
-
-        if (error) throw error
+        await mockDatabase.updateNews(editingPost.id, {
+          title: formData.title,
+          content: formData.content,
+          excerpt: formData.excerpt || null,
+          image_url: formData.image_url || null,
+          published: formData.published
+        })
       } else {
-        // Create new post
-        const { error } = await supabase
-          .from('news')
-          .insert({
-            title: formData.title,
-            content: formData.content,
-            excerpt: formData.excerpt || null,
-            image_url: formData.image_url || null,
-            published: formData.published
-          })
-
-        if (error) throw error
+        await mockDatabase.createNews({
+          title: formData.title,
+          content: formData.content,
+          excerpt: formData.excerpt || null,
+          image_url: formData.image_url || null,
+          published: formData.published
+        })
       }
 
-      // Reset form and refresh posts
       setFormData({ title: '', content: '', excerpt: '', image_url: '', published: true })
       setEditingPost(null)
       setIsCreating(false)
@@ -106,13 +79,7 @@ export function News() {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) return
 
     try {
-      const { error } = await supabase
-        .from('news')
-        .delete()
-        .eq('id', postId)
-
-      if (error) throw error
-      
+      await mockDatabase.deleteNews(postId)
       fetchPosts()
       alert('Article supprimé !')
     } catch (error: any) {
@@ -157,6 +124,12 @@ export function News() {
             <span>Nouvel article</span>
           </button>
         )}
+      </div>
+
+      <div className="card bg-blue-50 border-blue-200">
+        <p className="text-sm text-blue-700">
+          💡 Mode démonstration - Les articles sont stockés temporairement.
+        </p>
       </div>
 
       {isCreating && (
