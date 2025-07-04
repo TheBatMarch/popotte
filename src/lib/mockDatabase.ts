@@ -210,7 +210,18 @@ class MockDatabase {
     const index = this.orders.findIndex(order => order.id === id)
     if (index === -1) throw new Error('Commande non trouvée')
     
-    this.orders[index] = { ...this.orders[index], ...data }
+    // Mettre à jour les timestamps selon le statut
+    const updatedOrder = { ...this.orders[index], ...data }
+    
+    if (data.status === 'payment_notified' && !updatedOrder.payment_notified_at) {
+      updatedOrder.payment_notified_at = new Date().toISOString()
+    }
+    
+    if (data.status === 'confirmed' && !updatedOrder.confirmed_at) {
+      updatedOrder.confirmed_at = new Date().toISOString()
+    }
+    
+    this.orders[index] = updatedOrder
     return this.orders[index]
   }
 

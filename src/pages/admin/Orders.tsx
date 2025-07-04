@@ -24,8 +24,7 @@ export function Orders() {
   const confirmPayment = async (orderId: string) => {
     try {
       await mockDatabase.updateOrder(orderId, { 
-        status: 'confirmed',
-        confirmed_at: new Date().toISOString()
+        status: 'confirmed'
       })
       
       fetchOrders()
