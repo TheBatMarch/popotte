@@ -22,7 +22,7 @@ export function ProtectedRoute({ children, adminOnly = false }: ProtectedRoutePr
     return <Navigate to="/auth" replace />
   }
 
-  if (adminOnly && !profile?.is_admin) {
+  if (adminOnly && profile?.role !== 'admin') {
     return <Navigate to="/" replace />
   }
 

@@ -13,6 +13,7 @@ import { AdminLayout } from './pages/admin/AdminLayout'
 import { Users } from './pages/admin/Users'
 import { Orders } from './pages/admin/Orders'
 import { News } from './pages/admin/News'
+import { Products } from './pages/admin/Products'
 
 function App() {
   return (
@@ -65,6 +66,7 @@ function App() {
               <Route index element={<Users />} />
               <Route path="orders" element={<Orders />} />
               <Route path="news" element={<News />} />
+              <Route path="products" element={<Products />} />
             </Route>
           </Route>
         </Routes>

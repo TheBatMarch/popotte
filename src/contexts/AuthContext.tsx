@@ -6,7 +6,7 @@ interface Profile {
   id: string
   email: string
   full_name: string
-  is_admin: boolean
+  role: string
 }
 
 interface AuthContextType {
@@ -99,7 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           id: data.user.id,
           email,
           full_name: fullName,
-          is_admin: false,
+          role: 'user',
         })
       if (profileError) throw profileError
     }

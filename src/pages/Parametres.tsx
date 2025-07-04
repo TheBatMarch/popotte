@@ -26,7 +26,7 @@ export function Parametres() {
           <div>
             <h2 className="font-semibold">{profile?.full_name}</h2>
             <p className="text-sm text-gray-600">{profile?.email}</p>
-            {profile?.is_admin && (
+            {profile?.role === 'admin' && (
               <div className="flex items-center space-x-1 mt-1">
                 <Shield size={14} className="text-primary-500" />
                 <span className="text-xs text-primary-600 font-medium">Administrateur</span>
@@ -47,7 +47,7 @@ export function Parametres() {
           </div>
         </Link>
 
-        {profile?.is_admin && (
+        {profile?.role === 'admin' && (
           <Link
             to="/admin"
             className="card hover:bg-gray-50 transition-colors cursor-pointer block"

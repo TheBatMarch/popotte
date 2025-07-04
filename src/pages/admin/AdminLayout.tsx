@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
-import { Users, CreditCard, FileText, ArrowLeft } from 'lucide-react'
+import { Users, CreditCard, FileText, Package, ArrowLeft } from 'lucide-react'
 
 export function AdminLayout() {
   const location = useLocation()
@@ -17,7 +17,7 @@ export function AdminLayout() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         <Link
           to="/admin"
           className={`card text-center py-4 transition-colors ${
@@ -36,6 +36,16 @@ export function AdminLayout() {
         >
           <CreditCard className="mx-auto mb-2 text-primary-500" size={24} />
           <span className="text-sm font-medium">Commandes</span>
+        </Link>
+
+        <Link
+          to="/admin/products"
+          className={`card text-center py-4 transition-colors ${
+            isActive('/admin/products') ? 'bg-primary-50 border-primary-200' : 'hover:bg-gray-50'
+          }`}
+        >
+          <Package className="mx-auto mb-2 text-primary-500" size={24} />
+          <span className="text-sm font-medium">Produits</span>
         </Link>
 
         <Link
