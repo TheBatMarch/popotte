@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Plus, Edit, Trash2, Save, X, FolderPlus, Check, ChevronUp, ChevronDown, Settings } from 'lucide-react'
+import { Plus, Edit, Trash2, Save, X, FolderPlus, Check, ChevronUp, ChevronDown } from 'lucide-react'
 import { mockDatabase } from '../../lib/mockDatabase'
 import { ImageUpload } from '../../components/ImageUpload'
 import type { Product, Category } from '../../lib/mockData'
@@ -211,24 +211,6 @@ export function Products() {
   const handleCancelCategory = () => {
     setCategoryFormData({ name: '' })
     setIsCreatingCategory(false)
-  }
-
-  const moveProductUp = async (productId: string, categoryId: string | null) => {
-    try {
-      await mockDatabase.moveProductUp(productId, categoryId || '')
-      fetchProducts()
-    } catch (error: any) {
-      alert('Erreur : ' + error.message)
-    }
-  }
-
-  const moveProductDown = async (productId: string, categoryId: string | null) => {
-    try {
-      await mockDatabase.moveProductDown(productId, categoryId || '')
-      fetchProducts()
-    } catch (error: any) {
-      alert('Erreur : ' + error.message)
-    }
   }
 
   const addStockVariant = () => {
@@ -739,34 +721,18 @@ export function Products() {
                         </div>
                       </div>
                       
-                      <div className="flex flex-col ml-3">
-                        <button
-                          onClick={() => moveProductUp(product.id, product.category_id)}
-                          className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                          title="Monter le produit"
-                        >
-                          <ChevronUp size={14} />
-                        </button>
-                        <button
-                          onClick={() => moveProductDown(product.id, product.category_id)}
-                          className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                          title="Descendre le produit"
-                        >
-                          <ChevronDown size={14} />
-                        </button>
+                      <div className="flex space-x-2 ml-4">
                         <button
                           onClick={() => handleEditProduct(product)}
-                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors mt-1"
-                          title="Modifier le produit"
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                         >
-                          <Edit size={14} />
+                          <Edit size={16} />
                         </button>
                         <button
                           onClick={() => handleDeleteProduct(product.id)}
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
-                          title="Supprimer le produit"
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={16} />
                         </button>
                       </div>
                     </div>
