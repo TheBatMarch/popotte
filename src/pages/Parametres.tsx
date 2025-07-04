@@ -83,103 +83,6 @@ export function Parametres() {
 
   const renderMainView = () => (
     <>
-      {/* Profil utilisateur */}
-      <div className="card">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-              <User className="text-primary-600" size={24} />
-            </div>
-            <div>
-              <h2 className="font-semibold">{profile?.full_name}</h2>
-              <p className="text-sm text-gray-600">{profile?.email}</p>
-              {profile?.role === 'admin' && (
-                <div className="flex items-center space-x-1 mt-1">
-                  <Shield size={14} className="text-primary-500" />
-                  <span className="text-xs text-primary-600 font-medium">Administrateur</span>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {!editingProfile && (
-            <button
-              onClick={() => setEditingProfile(true)}
-              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-            >
-              <Edit size={20} />
-            </button>
-          )}
-        </div>
-
-        {editingProfile && (
-          <form onSubmit={handleUpdateProfile} className="space-y-4">
-            {message && (
-              <div className={`p-3 rounded-lg text-sm ${
-                message.includes('succès') 
-                  ? 'bg-green-50 text-green-700 border border-green-200' 
-                  : 'bg-red-50 text-red-700 border border-red-200'
-              }`}>
-                {message}
-              </div>
-            )}
-
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={profile?.email || ''}
-                disabled
-                className="input mt-1 bg-gray-50 cursor-not-allowed"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                L'email ne peut pas être modifié
-              </p>
-            </div>
-
-            <div>
-              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
-                Nom complet
-              </label>
-              <input
-                id="fullName"
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="input mt-1"
-                required
-              />
-            </div>
-
-            <div className="flex space-x-2">
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn-primary flex items-center space-x-2 disabled:opacity-50"
-              >
-                <Save size={16} />
-                <span>{loading ? 'Mise à jour...' : 'Sauvegarder'}</span>
-              </button>
-              <button
-                type="button"
-                onClick={cancelEdit}
-                className="btn-secondary flex items-center space-x-2"
-              >
-                <X size={16} />
-                <span>Annuler</span>
-              </button>
-            </div>
-          </form>
-        )}
-      </div>
-
-      {/* Fonctionnalités principales */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-800">Fonctionnalités</h2>
-        
         <div className="grid grid-cols-1 gap-4">
           {/* Gestion des utilisateurs - Admin seulement */}
           {profile?.role === 'admin' && (
@@ -274,7 +177,6 @@ export function Parametres() {
             </div>
           </button>
         </div>
-      </div>
 
       {/* Déconnexion */}
       <div className="pt-4">
