@@ -9,14 +9,24 @@ import {
   FileText, 
   Package,
   Save,
-  X
+  X,
+  ArrowLeft
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { mockDatabase } from '../lib/mockDatabase'
 
+// Import des composants admin
+import { Users as UsersComponent } from './admin/Users'
+import { Orders as OrdersComponent } from './admin/Orders'
+import { News as NewsComponent } from './admin/News'
+import { Products as ProductsComponent } from './admin/Products'
+import { Profile as ProfileComponent } from './Profile'
+
+type CurrentView = 'main' | 'users' | 'orders' | 'news' | 'products' | 'profile'
+
 export function Parametres() {
   const { profile, signOut, updateProfile } = useAuth()
+  const [currentView, setCurrentView] = useState<CurrentView>('main')
   const [editingProfile, setEditingProfile] = useState(false)
   const [fullName, setFullName] = useState(profile?.full_name || '')
   const [loading, setLoading] = useState(false)
@@ -54,10 +64,25 @@ export function Parametres() {
     setMessage('')
   }
 
-  return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Paramètres</h1>
+  const renderCurrentView = () => {
+    switch (currentView) {
+      case 'users':
+        return <UsersComponent />
+      case 'orders':
+        return <OrdersComponent />
+      case 'news':
+        return <NewsComponent />
+      case 'products':
+        return <ProductsComponent />
+      case 'profile':
+        return <ProfileComponent />
+      default:
+        return renderMainView()
+    }
+  }
 
+  const renderMainView = () => (
+    <>
       {/* Profil utilisateur */}
       <div className="card">
         <div className="flex items-center justify-between mb-4">
@@ -158,9 +183,9 @@ export function Parametres() {
         <div className="grid grid-cols-1 gap-4">
           {/* Gestion des utilisateurs - Admin seulement */}
           {profile?.role === 'admin' && (
-            <Link
-              to="/admin"
-              className="card hover:bg-blue-50 transition-colors cursor-pointer border-l-4 border-blue-500"
+            <button
+              onClick={() => setCurrentView('users')}
+              className="card hover:bg-blue-50 transition-colors cursor-pointer border-l-4 border-blue-500 text-left"
             >
               <div className="flex items-center space-x-4">
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
@@ -172,14 +197,14 @@ export function Parametres() {
                 </div>
                 <span className="text-blue-400">→</span>
               </div>
-            </Link>
+            </button>
           )}
 
           {/* Gestion des commandes - Admin seulement */}
           {profile?.role === 'admin' && (
-            <Link
-              to="/admin/orders"
-              className="card hover:bg-green-50 transition-colors cursor-pointer border-l-4 border-green-500"
+            <button
+              onClick={() => setCurrentView('orders')}
+              className="card hover:bg-green-50 transition-colors cursor-pointer border-l-4 border-green-500 text-left"
             >
               <div className="flex items-center space-x-4">
                 <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
@@ -191,14 +216,14 @@ export function Parametres() {
                 </div>
                 <span className="text-green-400">→</span>
               </div>
-            </Link>
+            </button>
           )}
 
           {/* Gestion des actualités - Admin seulement */}
           {profile?.role === 'admin' && (
-            <Link
-              to="/admin/news"
-              className="card hover:bg-purple-50 transition-colors cursor-pointer border-l-4 border-purple-500"
+            <button
+              onClick={() => setCurrentView('news')}
+              className="card hover:bg-purple-50 transition-colors cursor-pointer border-l-4 border-purple-500 text-left"
             >
               <div className="flex items-center space-x-4">
                 <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
@@ -210,14 +235,14 @@ export function Parametres() {
                 </div>
                 <span className="text-purple-400">→</span>
               </div>
-            </Link>
+            </button>
           )}
 
           {/* Gestion des produits - Admin seulement */}
           {profile?.role === 'admin' && (
-            <Link
-              to="/admin/products"
-              className="card hover:bg-orange-50 transition-colors cursor-pointer border-l-4 border-orange-500"
+            <button
+              onClick={() => setCurrentView('products')}
+              className="card hover:bg-orange-50 transition-colors cursor-pointer border-l-4 border-orange-500 text-left"
             >
               <div className="flex items-center space-x-4">
                 <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
@@ -229,13 +254,13 @@ export function Parametres() {
                 </div>
                 <span className="text-orange-400">→</span>
               </div>
-            </Link>
+            </button>
           )}
 
           {/* Mon profil - Tous les utilisateurs */}
-          <Link
-            to="/profile"
-            className="card hover:bg-gray-50 transition-colors cursor-pointer border-l-4 border-gray-500"
+          <button
+            onClick={() => setCurrentView('profile')}
+            className="card hover:bg-gray-50 transition-colors cursor-pointer border-l-4 border-gray-500 text-left"
           >
             <div className="flex items-center space-x-4">
               <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
@@ -247,7 +272,7 @@ export function Parametres() {
               </div>
               <span className="text-gray-400">→</span>
             </div>
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -266,6 +291,35 @@ export function Parametres() {
           </div>
         </button>
       </div>
+    </>
+  )
+
+  return (
+    <div className="space-y-6">
+      {/* Header avec bouton retour si pas sur la vue principale */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">
+          {currentView === 'main' ? 'Paramètres' : 
+           currentView === 'users' ? 'Gestion des utilisateurs' :
+           currentView === 'orders' ? 'Gestion des commandes' :
+           currentView === 'news' ? 'Gestion des actualités' :
+           currentView === 'products' ? 'Gestion des produits' :
+           currentView === 'profile' ? 'Mon profil' : 'Paramètres'}
+        </h1>
+        
+        {currentView !== 'main' && (
+          <button
+            onClick={() => setCurrentView('main')}
+            className="flex items-center space-x-2 text-primary-500 hover:text-primary-600 transition-colors"
+          >
+            <ArrowLeft size={20} />
+            <span>Retour</span>
+          </button>
+        )}
+      </div>
+
+      {/* Contenu de la vue actuelle */}
+      {renderCurrentView()}
     </div>
   )
 }
