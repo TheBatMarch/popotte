@@ -92,12 +92,24 @@ export function Home() {
         </div>
         
         <div className="card text-center py-8">
-          <p className="text-gray-500 mb-4">Aucune actualité trouvée.</p>
+          <h3 className="text-lg font-semibold mb-2">Configuration requise</h3>
+          <p className="text-gray-600 mb-4">
+            Pour utiliser l'application, vous devez d'abord configurer Supabase.
+          </p>
+          <div className="text-left bg-gray-50 p-4 rounded-lg">
+            <p className="text-sm font-medium mb-2">Étapes à suivre :</p>
+            <ol className="text-sm text-gray-600 space-y-1">
+              <li>1. Créez un projet sur <a href="https://supabase.com" target="_blank" className="text-blue-600 hover:underline">supabase.com</a></li>
+              <li>2. Copiez l'URL et la clé anonyme de votre projet</li>
+              <li>3. Mettez à jour le fichier .env avec vos vraies valeurs</li>
+              <li>4. Redémarrez l'application</li>
+            </ol>
+          </div>
           <button 
             onClick={retrySeeding}
-            className="btn-primary"
+            className="btn-primary mt-4"
           >
-            Actualiser
+            Réessayer la connexion
           </button>
         </div>
       </div>

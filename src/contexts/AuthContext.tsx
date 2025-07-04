@@ -81,17 +81,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signUp = async (email: string, password: string, fullName: string) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           full_name: fullName,
-          username: email.split('@')[0]
+          username: email.split('@')[0],
+          role: 'user'
         }
       }
     })
     if (error) throw error
+    
+    // Si l'utilisateur est créé mais pas encore confirmé
+    if (data.user && !data.session) {
+      throw new Error('Compte créé ! Vérifiez votre email pour confirmer votre inscription.')
+    }
   }
 
   const signOut = async () => {

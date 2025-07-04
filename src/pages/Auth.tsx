@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { Home, ClipboardList, CreditCard, Settings } from 'lucide-react'
 
 export function Auth() {
   const { user, signIn, signUp } = useAuth()
@@ -37,7 +38,8 @@ export function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 pb-20">
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="flex-1 flex items-center justify-center px-4 py-6">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <h2 className="text-3xl font-bold text-gray-900">
@@ -128,6 +130,32 @@ export function Auth() {
           </div>
         </form>
       </div>
+      </div>
+      
+      {/* Footer pour la page de connexion */}
+      <nav className="bg-white border-t border-gray-200 px-4 py-2">
+        <div className="flex justify-around items-center max-w-md mx-auto">
+          <div className="flex flex-col items-center p-2 text-gray-400">
+            <Home size={24} />
+            <span className="text-xs mt-1">Accueil</span>
+          </div>
+          
+          <div className="flex flex-col items-center p-2 text-gray-400">
+            <ClipboardList size={24} />
+            <span className="text-xs mt-1">Commande</span>
+          </div>
+          
+          <div className="flex flex-col items-center p-2 text-gray-400">
+            <CreditCard size={24} />
+            <span className="text-xs mt-1">Dettes</span>
+          </div>
+          
+          <div className="flex flex-col items-center p-2 text-gray-400">
+            <Settings size={24} />
+            <span className="text-xs mt-1">Paramètres</span>
+          </div>
+        </div>
+      </nav>
     </div>
   )
 }
