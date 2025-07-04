@@ -273,7 +273,7 @@ export function Commande() {
               <span className="text-red-600">Aucun produit trouvé</span>
             ) : (
               <span>
-                {Object.values(groupedProducts).reduce((total, products) => total + products.length, 0)} produit(s) trouvé(s)
+                {Object.values(groupedProducts).reduce((total, products: Product[]) => total + products.length, 0)} produit(s) trouvé(s)
                 {searchTerm && ` pour "${searchTerm}"`}
                 {selectedCategory !== 'all' && ` dans ${categories.find(c => c.id === selectedCategory)?.name || selectedCategory}`}
               </span>
@@ -302,7 +302,7 @@ export function Commande() {
           )}
         </div>
       ) : (
-        Object.entries(groupedProducts).map(([category, categoryProducts]) => (
+        Object.entries(groupedProducts).map(([category, categoryProducts]: [string, Product[]]) => (
         <div key={category} className="space-y-4">
           <h2 className="text-lg font-semibold text-gray-800">{category}</h2>
           
