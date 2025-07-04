@@ -22,9 +22,11 @@ export function Home() {
 
   useEffect(() => {
     fetchNewsPosts()
+    console.log('Chargement des actualités...')
   }, [])
 
   const fetchNewsPosts = async () => {
+    console.log('Début fetchNewsPosts')
     try {
       const { data, error } = await supabase
         .from('news')
@@ -33,9 +35,11 @@ export function Home() {
         .order('created_at', { ascending: false })
 
       if (error) throw error
+      console.log('Actualités récupérées:', data)
       setNewsPosts(data || [])
     } catch (error) {
       console.error('Error fetching news posts:', error)
+      alert('Erreur lors du chargement des actualités: ' + error.message)
     } finally {
       setLoading(false)
     }

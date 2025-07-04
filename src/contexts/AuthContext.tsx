@@ -61,6 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const fetchProfile = async (userId: string) => {
+    console.log('Récupération du profil pour:', userId)
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -69,9 +70,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single()
 
       if (error) throw error
+      console.log('Profil récupéré:', data)
       setProfile(data)
     } catch (error) {
       console.error('Error fetching profile:', error)
+      alert('Erreur lors du chargement du profil: ' + error.message)
     } finally {
       setLoading(false)
     }

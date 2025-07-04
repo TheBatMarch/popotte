@@ -30,9 +30,11 @@ export function Commande() {
 
   useEffect(() => {
     fetchProducts()
+    console.log('Chargement des produits...')
   }, [])
 
   const fetchProducts = async () => {
+    console.log('Début fetchProducts')
     try {
       const { data, error } = await supabase
         .from('products')
@@ -46,9 +48,11 @@ export function Commande() {
         .order('name', { ascending: true })
 
       if (error) throw error
+      console.log('Produits récupérés:', data)
       setProducts(data || [])
     } catch (error) {
       console.error('Error fetching products:', error)
+      alert('Erreur lors du chargement des produits: ' + error.message)
     } finally {
       setLoading(false)
     }
