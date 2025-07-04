@@ -7,11 +7,13 @@ export function Users() {
   const [users, setUsers] = useState<User[]>([])
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [userOrders, setUserOrders] = useState<Order[]>([])
+  const [userDebts, setUserDebts] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [addDebtAmount, setAddDebtAmount] = useState('')
 
   useEffect(() => {
     fetchUsers()
+    calculateUserDebts()
   }, [])
 
   const fetchUsers = async () => {
@@ -22,6 +24,24 @@ export function Users() {
       console.error('Error fetching users:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const calculateUserDebts = async () => {
+    try {
+      const allOrders = await mockDatabase.getOrders()
+      const debts: Record<string, number> = {}
+      
+      // Calculer les dettes pour chaque utilisateur
+      allOrders.forEach(order => {
+        if (order.status === 'pending') {
+          debts[order.user_id] = (debts[order.user_id] || 0) + order.total_amount
+        }
+      })
+      
+      setUserDebts(debts)
+    } catch (error) {
+      console.error('Error calculating user debts:', error)
     }
   }
 
@@ -40,6 +60,7 @@ export function Users() {
       
       if (selectedUser) {
         fetchUserOrders(selectedUser.id)
+        calculateUserDebts() // Recalculer les dettes après confirmation
       }
       alert('Paiement confirmé !')
     } catch (error) {
@@ -60,6 +81,7 @@ export function Users() {
 
       setAddDebtAmount('')
       fetchUserOrders(selectedUser.id)
+      calculateUserDebts() // Recalculer les dettes après ajout
       alert('Dette ajoutée avec succès !')
     } catch (error) {
       console.error('Error adding debt:', error)
@@ -127,7 +149,6 @@ export function Users() {
             </div>
             <div>
               <h3 className="font-semibold">{selectedUser.full_name}</h3>
-              <p className="text-sm text-gray-600">{selectedUser.email}</p>
               {selectedUser.role === 'admin' && (
                 <div className="flex items-center space-x-1 mt-1">
                   <Shield size={14} className="text-primary-500" />
@@ -218,6 +239,7 @@ export function Users() {
         </div>
       ) : (
         users.map((user) => (
+          const userDebt = userDebts[user.id] || 0
           <div
             key={user.id}
             className="card hover:bg-gray-50 cursor-pointer transition-colors"
@@ -227,10 +249,17 @@ export function Users() {
             }}
           >
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
-                  <span className="text-primary-600 font-semibold">
-                    {user.full_name.charAt(0).toUpperCase()}
+                    <div className="flex items-center space-x-2">
+                      {userDebt > 0 ? (
+                        <span className="text-sm font-medium text-red-600">
+                          Dette: {userDebt.toFixed(2)} €
+                        </span>
+                      ) : (
+                        <span className="text-sm text-green-600">
+                          Compte à jour
+                        </span>
+                      )}
+                    </div>
                   </span>
                 </div>
                 <div>
@@ -249,6 +278,7 @@ export function Users() {
                 <span className="text-gray-400">→</span>
               </div>
             </div>
+          )
           </div>
         ))
       )}
