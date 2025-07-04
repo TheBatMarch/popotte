@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Shield, Plus, Minus } from 'lucide-react'
+import { Shield } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 
 interface User {
