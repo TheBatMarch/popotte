@@ -27,6 +27,8 @@ export function Home() {
 
   const fetchNewsPosts = async () => {
     console.log('Début fetchNewsPosts')
+    console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL)
+    console.log('Supabase Key exists:', !!import.meta.env.VITE_SUPABASE_ANON_KEY)
     try {
       const { data, error } = await supabase
         .from('news')
@@ -34,12 +36,15 @@ export function Home() {
         .eq('published', true)
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error('Erreur Supabase:', error)
+        throw error
+      }
       console.log('Actualités récupérées:', data)
       setNewsPosts(data || [])
     } catch (error) {
       console.error('Error fetching news posts:', error)
-      alert('Erreur lors du chargement des actualités: ' + error.message)
+      console.error('Détails de l\'erreur:', error)
     } finally {
       setLoading(false)
     }
