@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 
 export function Auth() {
   const { user, signIn, signUp } = useAuth()
+  const location = useLocation()
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -12,7 +13,9 @@ export function Auth() {
   const [error, setError] = useState('')
 
   if (user) {
-    return <Navigate to="/" replace />
+    // Rediriger vers la page d'origine ou l'accueil
+    const from = (location.state as any)?.from?.pathname || '/'
+    return <Navigate to={from} replace />
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,7 +44,7 @@ export function Auth() {
             {isLogin ? 'Connexion' : 'Créer un compte'}
           </h2>
           <p className="mt-2 text-gray-600">
-            {isLogin ? 'Connectez-vous à votre compte' : 'Rejoignez notre association'}
+            {isLogin ? 'Connectez-vous pour continuer' : 'Rejoignez notre association'}
           </p>
         </div>
 
