@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Plus, Minus, ShoppingCart, Package } from 'lucide-react'
+import { Plus, Minus, ShoppingCart, Package, Search, Filter } from 'lucide-react'
 import { mockDatabase } from '../lib/mockDatabase'
 import { useAuth } from '../contexts/AuthContext'
 import type { Product } from '../lib/mockData'
@@ -17,6 +17,8 @@ export function Commande() {
   const [cart, setCart] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState<string>('all')
 
   useEffect(() => {
     fetchProducts()
@@ -152,8 +154,17 @@ export function Commande() {
     }
   }
 
+  // Filtrer les produits selon la recherche et la catégorie
+  const filterProducts = (categoryProducts: Product[]) => {
+    return categoryProducts.filter(product => {
+      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
+      return matchesSearch
+    })
+  }
+
   // Grouper les produits par catégorie dans l'ordre défini
-  const groupedProducts = categories.reduce((acc, category) => {
+  let groupedProducts = categories.reduce((acc, category) => {
     const categoryProducts = products
       .filter(p => p.category_id === category.id)
       .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
@@ -167,6 +178,27 @@ export function Commande() {
   const uncategorizedProducts = products.filter(p => !p.category_id)
   if (uncategorizedProducts.length > 0) {
     groupedProducts['Sans catégorie'] = uncategorizedProducts
+  }
+
+  // Appliquer les filtres
+  if (selectedCategory !== 'all') {
+    // Filtrer par catégorie sélectionnée
+    const selectedCategoryName = categories.find(c => c.id === selectedCategory)?.name || selectedCategory
+    if (groupedProducts[selectedCategoryName]) {
+      groupedProducts = { [selectedCategoryName]: filterProducts(groupedProducts[selectedCategoryName]) }
+    } else {
+      groupedProducts = {}
+    }
+  } else if (searchTerm) {
+    // Appliquer la recherche à toutes les catégories
+    Object.keys(groupedProducts).forEach(categoryName => {
+      const filteredProducts = filterProducts(groupedProducts[categoryName])
+      if (filteredProducts.length > 0) {
+        groupedProducts[categoryName] = filteredProducts
+      } else {
+        delete groupedProducts[categoryName]
+      }
+    })
   }
 
   if (loading) {
@@ -192,7 +224,95 @@ export function Commande() {
         </p>
       </div>
 
-      {Object.entries(groupedProducts).map(([category, categoryProducts]) => (
+      {/* Barre de recherche et filtres */}
+      <div className="space-y-4">
+        {/* Recherche */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+          <input
+            type="text"
+            placeholder="Rechercher un produit..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="input pl-10"
+          />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+        
+        {/* Filtre par catégorie */}
+        <div className="flex items-center space-x-2">
+          <Filter size={18} className="text-gray-500" />
+          <div className="flex space-x-2 overflow-x-auto whitespace-nowrap">
+            <button
+              onClick={() => setSelectedCategory('all')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex-shrink-0 ${
+                selectedCategory === 'all' 
+                  ? 'bg-primary-500 text-white' 
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              Tout
+            </button>
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => setSelectedCategory(category.id)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex-shrink-0 ${
+                  selectedCategory === category.id 
+                    ? 'bg-primary-500 text-white' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                {category.name}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        {/* Indicateur de résultats */}
+        {(searchTerm || selectedCategory !== 'all') && (
+          <div className="text-sm text-gray-600">
+            {Object.keys(groupedProducts).length === 0 ? (
+              <span className="text-red-600">Aucun produit trouvé</span>
+            ) : (
+              <span>
+                {Object.values(groupedProducts).reduce((total, products) => total + products.length, 0)} produit(s) trouvé(s)
+                {searchTerm && ` pour "${searchTerm}"`}
+                {selectedCategory !== 'all' && ` dans ${categories.find(c => c.id === selectedCategory)?.name || selectedCategory}`}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {Object.keys(groupedProducts).length === 0 ? (
+        <div className="card text-center py-8">
+          <p className="text-gray-500">
+            {searchTerm || selectedCategory !== 'all' 
+              ? 'Aucun produit ne correspond à vos critères de recherche.' 
+              : 'Aucun produit disponible.'}
+          </p>
+          {(searchTerm || selectedCategory !== 'all') && (
+            <button
+              onClick={() => {
+                setSearchTerm('')
+                setSelectedCategory('all')
+              }}
+              className="mt-2 text-primary-500 hover:text-primary-600 text-sm"
+            >
+              Réinitialiser les filtres
+            </button>
+          )}
+        </div>
+      ) : (
+        Object.entries(groupedProducts).map(([category, categoryProducts]) => (
         <div key={category} className="space-y-4">
           <h2 className="text-lg font-semibold text-gray-800">{category}</h2>
           
@@ -353,7 +473,8 @@ export function Commande() {
             ))}
           </div>
         </div>
-      ))}
+        ))
+      )}
 
       {cart.length > 0 && (
         <div className="fixed top-4 right-4 z-50">
