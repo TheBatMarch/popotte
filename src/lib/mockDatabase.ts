@@ -111,114 +111,52 @@ class MockDatabase {
 
   async moveProductUp(productId: string, categoryId: string): Promise<void> {
     await this.delay()
-    console.log('🔼 Moving product UP:', productId, 'in category:', categoryId || 'no-category')
-    
-    // Gérer le cas des produits sans catégorie
+    // Gérer le cas des produits sans catégorie (null vs '')
     const actualCategoryId = categoryId === '' ? null : categoryId
     
-    // Récupérer tous les produits de la même catégorie, triés par display_order
-    const categoryProducts = this.products
-      .filter(p => p.category_id === actualCategoryId)
-      .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
+    // Filtrer les produits de la même catégorie
+    const categoryProducts = this.products.filter(p => p.category_id === actualCategoryId)
     
-    console.log('📋 Products in category:', categoryProducts.map(p => ({ 
-      id: p.id, 
-      name: p.name, 
-      order: p.display_order 
-    })))
+    const index = categoryProducts.findIndex(product => product.id === productId)
+    if (index === -1) throw new Error('Produit non trouvé')
+    if (index === 0) return // Déjà en première position
     
-    const productIndex = categoryProducts.findIndex(p => p.id === productId)
-    console.log('📍 Product index:', productIndex, 'Total products:', categoryProducts.length)
-    
-    if (productIndex === -1) {
-      console.error('❌ Product not found')
-      throw new Error('Produit non trouvé')
-    }
-    if (productIndex === 0) {
-      console.log('⚠️ Already at top position')
-      return // Déjà en première position
-    }
-    
-    // Échanger les display_order avec le produit précédent
-    const currentProduct = categoryProducts[productIndex]
-    const previousProduct = categoryProducts[productIndex - 1]
-    
-    console.log('🔄 Swapping:', {
-      current: { name: currentProduct.name, order: currentProduct.display_order },
-      previous: { name: previousProduct.name, order: previousProduct.display_order }
-    })
-    
-    const tempOrder = currentProduct.display_order || 0
-    currentProduct.display_order = previousProduct.display_order || 0
-    previousProduct.display_order = tempOrder
+    // Échanger avec le produit précédent (même logique que les catégories)
+    const temp = categoryProducts[index - 1].display_order
+    categoryProducts[index - 1].display_order = categoryProducts[index].display_order
+    categoryProducts[index].display_order = temp
     
     // Mettre à jour dans la liste principale
-    const currentIndex = this.products.findIndex(p => p.id === productId)
-    const previousIndex = this.products.findIndex(p => p.id === previousProduct.id)
+    const mainIndex1 = this.products.findIndex(p => p.id === categoryProducts[index - 1].id)
+    const mainIndex2 = this.products.findIndex(p => p.id === categoryProducts[index].id)
     
-    if (currentIndex !== -1) this.products[currentIndex] = currentProduct
-    if (previousIndex !== -1) this.products[previousIndex] = previousProduct
-    
-    console.log('✅ Move completed:', {
-      current: { name: currentProduct.name, newOrder: currentProduct.display_order },
-      previous: { name: previousProduct.name, newOrder: previousProduct.display_order }
-    })
+    if (mainIndex1 !== -1) this.products[mainIndex1] = categoryProducts[index - 1]
+    if (mainIndex2 !== -1) this.products[mainIndex2] = categoryProducts[index]
   }
 
   async moveProductDown(productId: string, categoryId: string): Promise<void> {
     await this.delay()
-    console.log('🔽 Moving product DOWN:', productId, 'in category:', categoryId || 'no-category')
-    
-    // Gérer le cas des produits sans catégorie
+    // Gérer le cas des produits sans catégorie (null vs '')
     const actualCategoryId = categoryId === '' ? null : categoryId
     
-    // Récupérer tous les produits de la même catégorie, triés par display_order
-    const categoryProducts = this.products
-      .filter(p => p.category_id === actualCategoryId)
-      .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
+    // Filtrer les produits de la même catégorie
+    const categoryProducts = this.products.filter(p => p.category_id === actualCategoryId)
     
-    console.log('📋 Products in category:', categoryProducts.map(p => ({ 
-      id: p.id, 
-      name: p.name, 
-      order: p.display_order 
-    })))
+    const index = categoryProducts.findIndex(product => product.id === productId)
+    if (index === -1) throw new Error('Produit non trouvé')
+    if (index === categoryProducts.length - 1) return // Déjà en dernière position
     
-    const productIndex = categoryProducts.findIndex(p => p.id === productId)
-    console.log('📍 Product index:', productIndex, 'Total products:', categoryProducts.length)
-    
-    if (productIndex === -1) {
-      console.error('❌ Product not found')
-      throw new Error('Produit non trouvé')
-    }
-    if (productIndex === categoryProducts.length - 1) {
-      console.log('⚠️ Already at bottom position')
-      return // Déjà en dernière position
-    }
-    
-    // Échanger les display_order avec le produit suivant
-    const currentProduct = categoryProducts[productIndex]
-    const nextProduct = categoryProducts[productIndex + 1]
-    
-    console.log('🔄 Swapping:', {
-      current: { name: currentProduct.name, order: currentProduct.display_order },
-      next: { name: nextProduct.name, order: nextProduct.display_order }
-    })
-    
-    const tempOrder = currentProduct.display_order || 0
-    currentProduct.display_order = nextProduct.display_order || 0
-    nextProduct.display_order = tempOrder
+    // Échanger avec le produit suivant (même logique que les catégories)
+    const temp = categoryProducts[index + 1].display_order
+    categoryProducts[index + 1].display_order = categoryProducts[index].display_order
+    categoryProducts[index].display_order = temp
     
     // Mettre à jour dans la liste principale
-    const currentIndex = this.products.findIndex(p => p.id === productId)
-    const nextIndex = this.products.findIndex(p => p.id === nextProduct.id)
+    const mainIndex1 = this.products.findIndex(p => p.id === categoryProducts[index].id)
+    const mainIndex2 = this.products.findIndex(p => p.id === categoryProducts[index + 1].id)
     
-    if (currentIndex !== -1) this.products[currentIndex] = currentProduct
-    if (nextIndex !== -1) this.products[nextIndex] = nextProduct
-    
-    console.log('✅ Move completed:', {
-      current: { name: currentProduct.name, newOrder: currentProduct.display_order },
-      next: { name: nextProduct.name, newOrder: nextProduct.display_order }
-    })
+    if (mainIndex1 !== -1) this.products[mainIndex1] = categoryProducts[index]
+    if (mainIndex2 !== -1) this.products[mainIndex2] = categoryProducts[index + 1]
   }
 
   // CATEGORIES

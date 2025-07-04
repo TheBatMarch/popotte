@@ -215,25 +215,19 @@ export function Products() {
 
   const moveProductUp = async (productId: string, categoryId: string | null) => {
     try {
-      console.log('🚀 Initiating move UP for product:', productId, 'in category:', categoryId)
       await mockDatabase.moveProductUp(productId, categoryId || '')
       fetchProducts()
-      console.log('🔄 Products refreshed after move UP')
     } catch (error: any) {
-      console.error('Error moving product up:', error)
-      alert('Erreur lors du déplacement : ' + error.message)
+      alert('Erreur : ' + error.message)
     }
   }
 
   const moveProductDown = async (productId: string, categoryId: string | null) => {
     try {
-      console.log('🚀 Initiating move DOWN for product:', productId, 'in category:', categoryId)
       await mockDatabase.moveProductDown(productId, categoryId || '')
       fetchProducts()
-      console.log('🔄 Products refreshed after move DOWN')
     } catch (error: any) {
-      console.error('Error moving product down:', error)
-      alert('Erreur lors du déplacement : ' + error.message)
+      alert('Erreur : ' + error.message)
     }
   }
 
