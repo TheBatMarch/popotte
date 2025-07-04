@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Calendar } from 'lucide-react'
 import { database } from '../lib/database'
-import { seedDatabase } from '../lib/seedData'
+import { initializeDatabase } from '../lib/initializeDatabase'
 import type { NewsPost } from '../lib/database'
 
 const logoUrl = '/ChatGPT Image 4 juil. 2025, 23_49_33.png'
@@ -18,7 +18,7 @@ export function Home() {
   const initializeData = async () => {
     try {
       setSeeding(true)
-      await seedDatabase()
+      await initializeDatabase()
       await fetchNewsPosts()
     } catch (error) {
       console.error('Error initializing data:', error)
@@ -39,7 +39,7 @@ export function Home() {
   }
 
   const retrySeeding = async () => {
-    fetchNewsPosts()
+    await initializeData()
   }
 
   if (seeding) {
@@ -94,22 +94,21 @@ export function Home() {
         <div className="card text-center py-8">
           <h3 className="text-lg font-semibold mb-2">Configuration requise</h3>
           <p className="text-gray-600 mb-4">
-            Pour utiliser l'application, vous devez d'abord configurer Supabase.
+            Initialisation de la base de données en cours...
           </p>
           <div className="text-left bg-gray-50 p-4 rounded-lg">
-            <p className="text-sm font-medium mb-2">Étapes à suivre :</p>
+            <p className="text-sm font-medium mb-2">Si le problème persiste :</p>
             <ol className="text-sm text-gray-600 space-y-1">
-              <li>1. Créez un projet sur <a href="https://supabase.com" target="_blank" className="text-blue-600 hover:underline">supabase.com</a></li>
-              <li>2. Copiez l'URL et la clé anonyme de votre projet</li>
-              <li>3. Mettez à jour le fichier .env avec vos vraies valeurs</li>
-              <li>4. Redémarrez l'application</li>
+              <li>1. Vérifiez votre connexion internet</li>
+              <li>2. Vérifiez que Supabase est accessible</li>
+              <li>3. Cliquez sur "Réessayer" ci-dessous</li>
             </ol>
           </div>
           <button 
             onClick={retrySeeding}
             className="btn-primary mt-4"
           >
-            Réessayer la connexion
+            Réessayer l'initialisation
           </button>
         </div>
       </div>
