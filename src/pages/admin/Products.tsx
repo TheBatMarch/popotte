@@ -259,7 +259,9 @@ export function Products() {
   }, {} as Record<string, Product[]>)
 
   // Ajouter les produits sans catégorie à la fin
-  const uncategorizedProducts = products.filter(p => !p.category_id)
+  const uncategorizedProducts = products
+    .filter(p => !p.category_id)
+    .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
   if (uncategorizedProducts.length > 0) {
     groupedProducts['Sans catégorie'] = uncategorizedProducts
   }
