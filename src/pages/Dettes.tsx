@@ -34,6 +34,7 @@ export function Dettes() {
     if (!user) return
 
     try {
+      console.log('🔍 Tentative de récupération des commandes...')
       const { data, error } = await supabase
         .from('orders')
         .select(`
@@ -51,10 +52,17 @@ export function Dettes() {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error('❌ Erreur lors de la récupération des commandes:', error)
+        throw error
+      }
+      
+      console.log('✅ Commandes récupérées:', data?.length || 0, 'commandes')
       setOrders(data || [])
     } catch (error) {
       console.error('Error fetching orders:', error)
+      // En cas d'erreur, on arrête le loading pour éviter le spinner infini
+      setOrders([])
     } finally {
       setLoading(false)
     }

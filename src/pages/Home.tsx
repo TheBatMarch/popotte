@@ -24,16 +24,24 @@ export function Home() {
 
   const fetchNewsPosts = async () => {
     try {
+      console.log('🔍 Tentative de récupération des actualités...')
       const { data, error } = await supabase
         .from('news')
         .select('*')
         .eq('published', true)
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error('❌ Erreur lors de la récupération des actualités:', error)
+        throw error
+      }
+      
+      console.log('✅ Actualités récupérées:', data?.length || 0, 'articles')
       setNewsPosts(data || [])
     } catch (error) {
       console.error('Error fetching news posts:', error)
+      // En cas d'erreur, on arrête le loading pour éviter le spinner infini
+      setNewsPosts([])
     } finally {
       setLoading(false)
     }

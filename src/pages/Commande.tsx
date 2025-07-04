@@ -34,6 +34,7 @@ export function Commande() {
 
   const fetchProducts = async () => {
     try {
+      console.log('🔍 Tentative de récupération des produits...')
       const { data, error } = await supabase
         .from('products')
         .select(`
@@ -45,10 +46,17 @@ export function Commande() {
         .eq('is_available', true)
         .order('name', { ascending: true })
 
-      if (error) throw error
+      if (error) {
+        console.error('❌ Erreur lors de la récupération des produits:', error)
+        throw error
+      }
+      
+      console.log('✅ Produits récupérés:', data?.length || 0, 'produits')
       setProducts(data || [])
     } catch (error) {
       console.error('Error fetching products:', error)
+      // En cas d'erreur, on arrête le loading pour éviter le spinner infini
+      setProducts([])
     } finally {
       setLoading(false)
     }
