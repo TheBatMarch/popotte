@@ -732,23 +732,21 @@ export function Products() {
                         </div>
                       </div>
                       
-                      <div className="flex space-x-2 ml-4">
-                        <div className="flex items-center space-x-1 border-r border-gray-200 pr-2">
-                          <button
-                            onClick={() => moveProductUp(product.id, product.category_id || '')}
-                            className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Monter le produit"
-                          >
-                            <ChevronUp size={16} />
-                          </button>
-                          <button
-                            onClick={() => moveProductDown(product.id, product.category_id || '')}
-                            className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Descendre le produit"
-                          >
-                            <ChevronDown size={16} />
-                          </button>
-                        </div>
+                      <div className="flex flex-col space-y-1 ml-4">
+                        <button
+                          onClick={() => moveProductUp(product.id, product.category_id || '')}
+                          className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Monter le produit"
+                        >
+                          <ChevronUp size={16} />
+                        </button>
+                        <button
+                          onClick={() => moveProductDown(product.id, product.category_id || '')}
+                          className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Descendre le produit"
+                        >
+                          <ChevronDown size={16} />
+                        </button>
                         <button
                           onClick={() => handleEditProduct(product)}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"

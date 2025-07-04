@@ -5,7 +5,7 @@ import { mockDatabase } from '../lib/mockDatabase'
 import { useAuth } from '../contexts/AuthContext'
 import type { NewsPost } from '../lib/mockData'
 
-const logoUrl = '/ChatGPT Image 4 juil. 2025, 15_38_15.png'
+const logoUrl = '/ChatGPT Image 4 juil. 2025, 23_49_33.png'
 
 export function Home() {
   const { profile } = useAuth()
