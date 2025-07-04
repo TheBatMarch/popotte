@@ -357,23 +357,3 @@ export function Users() {
     </div>
   )
 }
-                  <h3 className="font-medium">{user.full_name}</h3>
-                  <p className="text-sm text-gray-600">{user.email}</p>
-                  <p className="text-xs text-gray-500">
-                    Inscrit le {formatDate(user.created_at)}
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  {user.role === 'admin' && (
-                    <Shield size={16} className="text-primary-500" />
-                  )}
-                  <span className="text-gray-400">→</span>
-                </div>
-              </div>
-            </div>
-          )
-        })
-      )}
-    </div>
-  )
-}
