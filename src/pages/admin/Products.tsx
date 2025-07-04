@@ -741,34 +741,34 @@ export function Products() {
                         </div>
                       </div>
                       
-                      <div className="flex flex-col space-y-1 ml-4">
+                      <div className="flex flex-col ml-3">
                         <button
-                          onClick={() => moveProductUp(product.id, product.category_id || '')}
-                          className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          onClick={() => moveProductUp(product.id, product.category_id)}
+                          className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
                           title="Monter le produit"
                         >
-                          <ChevronUp size={16} />
+                          <ChevronUp size={14} />
                         </button>
                         <button
-                          onClick={() => moveProductDown(product.id, product.category_id || '')}
-                          className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          onClick={() => moveProductDown(product.id, product.category_id)}
+                          className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
                           title="Descendre le produit"
                         >
-                          <ChevronDown size={16} />
+                          <ChevronDown size={14} />
                         </button>
                         <button
                           onClick={() => handleEditProduct(product)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors mt-1"
                           title="Modifier le produit"
                         >
-                          <Edit size={16} />
+                          <Edit size={14} />
                         </button>
                         <button
                           onClick={() => handleDeleteProduct(product.id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
                           title="Supprimer le produit"
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     </div>
