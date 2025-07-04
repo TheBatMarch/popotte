@@ -183,6 +183,7 @@ class MockDatabase {
   }
 
   async createOrder(data: { user_id: string; total_amount: number; items: Array<{ product_id: string; quantity: number; unit_price: number }> }): Promise<Order> {
+  }
   async createOrder(data: { user_id: string; total_amount: number; items: Array<{ product_id: string; quantity: number; unit_price: number; variant?: string }> }): Promise<Order> {
     await this.delay()
     
