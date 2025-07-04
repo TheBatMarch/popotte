@@ -677,11 +677,11 @@ export function Products() {
                   <div key={product.id} className="card">
                     <div className="flex justify-between items-start">
                       <div className="flex space-x-4 flex-1">
-            <div className="space-y-3">
+                        {product.image_url && (
                           <img
                             src={product.image_url}
-                  <div className="flex items-start space-x-4">
-                    <div className="flex space-x-4 flex-1">
+                            alt={product.name}
+                            className="w-20 h-20 object-cover rounded-lg"
                           />
                         )}
                         
@@ -746,12 +746,9 @@ export function Products() {
                             className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                             title="Descendre le produit"
                           >
-                    {/* Colonne des actions à droite */}
-                    <div className="flex flex-col space-y-1 ml-4">
-                      <div className="flex items-center space-x-1">
+                            <ChevronDown size={16} />
+                          </button>
                         </div>
-                        <button
-                      <div className="flex items-center space-x-1">
                         <button
                           onClick={() => handleEditProduct(product)}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
