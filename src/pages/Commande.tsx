@@ -226,53 +226,43 @@ export function Commande() {
 
       {/* Barre de recherche et filtres */}
       <div className="space-y-4">
-        {/* Recherche */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-          <input
-            type="text"
-            placeholder="Rechercher un produit..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="input pl-10"
-          />
-          {searchTerm && (
-            <button
-              onClick={() => setSearchTerm('')}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              ✕
-            </button>
-          )}
-        </div>
-        
-        {/* Filtre par catégorie */}
-        <div className="flex items-center space-x-2">
-          <Filter size={18} className="text-gray-500" />
-          <div className="flex space-x-2 overflow-x-auto whitespace-nowrap">
-            <button
-              onClick={() => setSelectedCategory('all')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex-shrink-0 ${
-                selectedCategory === 'all' 
-                  ? 'bg-primary-500 text-white' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              Tout
-            </button>
-            {categories.map((category) => (
+        {/* Recherche et filtre sur la même ligne */}
+        <div className="flex space-x-3">
+          {/* Barre de recherche */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <input
+              type="text"
+              placeholder="Rechercher un produit..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="input pl-10 pr-10"
+            />
+            {searchTerm && (
               <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex-shrink-0 ${
-                  selectedCategory === category.id 
-                    ? 'bg-primary-500 text-white' 
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
+                onClick={() => setSearchTerm('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
-                {category.name}
+                ✕
               </button>
-            ))}
+            )}
+          </div>
+          
+          {/* Menu déroulant catégorie */}
+          <div className="relative">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="input pr-8 min-w-[140px] appearance-none bg-white"
+            >
+              <option value="all">Toutes catégories</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+            <Filter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
           </div>
         </div>
         
