@@ -37,17 +37,12 @@ export function Home() {
 
   return (
     <div className="space-y-6">
-
-      <div className="card">
-        <h2 className="text-lg font-semibold mb-2">Bienvenue !</h2>
-        <p className="text-gray-600">
-          Découvrez les dernières actualités de notre association et passez vos commandes facilement.
-        </p>
-        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-700">
-            💡 Application en mode démonstration avec du contenu factice.
-          </p>
-        </div>
+      <div className="flex justify-center mb-6">
+        <img 
+          src={logoUrl} 
+          alt="Popotte Association Logo" 
+          className="w-48 h-48 object-contain"
+        />
       </div>
 
       <div className="space-y-4">
