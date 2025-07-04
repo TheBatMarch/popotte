@@ -119,7 +119,9 @@ export function Commande() {
 
   // Grouper les produits par catégorie dans l'ordre défini
   const groupedProducts = categories.reduce((acc, category) => {
-    const categoryProducts = products.filter(p => p.category_id === category.id)
+    const categoryProducts = products
+      .filter(p => p.category_id === category.id)
+      .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
     if (categoryProducts.length > 0) {
       acc[category.name] = categoryProducts
     }

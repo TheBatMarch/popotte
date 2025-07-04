@@ -33,6 +33,7 @@ export interface Product {
   category_id: string | null
   image_url: string | null
   is_available: boolean
+  display_order: number
   categories?: {
     name: string
   }
@@ -177,6 +178,7 @@ export const MOCK_PRODUCTS: Product[] = [
     category_id: 'cat-1',
     image_url: 'https://images.pexels.com/photos/1552630/pexels-photo-1552630.jpeg',
     is_available: true,
+    display_order: 0,
     categories: { name: 'BOISSONS' }
   },
   {
@@ -187,6 +189,7 @@ export const MOCK_PRODUCTS: Product[] = [
     category_id: 'cat-1',
     image_url: 'https://images.pexels.com/photos/1552630/pexels-photo-1552630.jpeg',
     is_available: true,
+    display_order: 1,
     categories: { name: 'BOISSONS' }
   },
   {
@@ -197,6 +200,7 @@ export const MOCK_PRODUCTS: Product[] = [
     category_id: 'cat-1',
     image_url: 'https://images.pexels.com/photos/96974/pexels-photo-96974.jpeg',
     is_available: true,
+    display_order: 2,
     categories: { name: 'BOISSONS' }
   },
   {
@@ -207,6 +211,7 @@ export const MOCK_PRODUCTS: Product[] = [
     category_id: 'cat-1',
     image_url: 'https://images.pexels.com/photos/230477/pexels-photo-230477.jpeg',
     is_available: true,
+    display_order: 3,
     categories: { name: 'BOISSONS' }
   },
 
@@ -219,6 +224,7 @@ export const MOCK_PRODUCTS: Product[] = [
     category_id: 'cat-2',
     image_url: 'https://images.pexels.com/photos/1583884/pexels-photo-1583884.jpeg',
     is_available: true,
+    display_order: 0,
     categories: { name: 'EN CAS SALE' }
   },
   {
@@ -229,6 +235,7 @@ export const MOCK_PRODUCTS: Product[] = [
     category_id: 'cat-2',
     image_url: 'https://images.pexels.com/photos/4518843/pexels-photo-4518843.jpeg',
     is_available: true,
+    display_order: 1,
     categories: { name: 'EN CAS SALE' }
   },
 
@@ -241,6 +248,7 @@ export const MOCK_PRODUCTS: Product[] = [
     category_id: 'cat-3',
     image_url: 'https://images.pexels.com/photos/1126359/pexels-photo-1126359.jpeg',
     is_available: true,
+    display_order: 0,
     categories: { name: 'EN CAS SUCRE' }
   },
   {
@@ -251,6 +259,7 @@ export const MOCK_PRODUCTS: Product[] = [
     category_id: 'cat-3',
     image_url: 'https://images.pexels.com/photos/1126359/pexels-photo-1126359.jpeg',
     is_available: true,
+    display_order: 1,
     categories: { name: 'EN CAS SUCRE' }
   },
 
@@ -263,6 +272,7 @@ export const MOCK_PRODUCTS: Product[] = [
     category_id: 'cat-4',
     image_url: 'https://images.pexels.com/photos/4518843/pexels-photo-4518843.jpeg',
     is_available: true,
+    display_order: 0,
     categories: { name: 'PLATS PRINCIPAUX' }
   },
   {
@@ -273,6 +283,7 @@ export const MOCK_PRODUCTS: Product[] = [
     category_id: 'cat-4',
     image_url: 'https://images.pexels.com/photos/5949888/pexels-photo-5949888.jpeg',
     is_available: true,
+    display_order: 1,
     categories: { name: 'PLATS PRINCIPAUX' }
   },
   {
@@ -283,6 +294,7 @@ export const MOCK_PRODUCTS: Product[] = [
     category_id: 'cat-4',
     image_url: 'https://images.pexels.com/photos/4518843/pexels-photo-4518843.jpeg',
     is_available: true,
+    display_order: 2,
     categories: { name: 'PLATS PRINCIPAUX' }
   },
 
@@ -295,6 +307,7 @@ export const MOCK_PRODUCTS: Product[] = [
     category_id: 'cat-5',
     image_url: 'https://images.pexels.com/photos/539451/pexels-photo-539451.jpeg',
     is_available: true,
+    display_order: 0,
     categories: { name: 'ENTREES' }
   },
   {
@@ -305,6 +318,7 @@ export const MOCK_PRODUCTS: Product[] = [
     category_id: 'cat-5',
     image_url: 'https://images.pexels.com/photos/1059905/pexels-photo-1059905.jpeg',
     is_available: true,
+    display_order: 1,
     categories: { name: 'ENTREES' }
   },
 
@@ -317,6 +331,7 @@ export const MOCK_PRODUCTS: Product[] = [
     category_id: 'cat-6',
     image_url: 'https://images.pexels.com/photos/1126359/pexels-photo-1126359.jpeg',
     is_available: true,
+    display_order: 0,
     categories: { name: 'DESSERTS' }
   },
   {
@@ -327,6 +342,7 @@ export const MOCK_PRODUCTS: Product[] = [
     category_id: 'cat-6',
     image_url: 'https://images.pexels.com/photos/1126359/pexels-photo-1126359.jpeg',
     is_available: true,
+    display_order: 1,
     categories: { name: 'DESSERTS' }
   }
 ]

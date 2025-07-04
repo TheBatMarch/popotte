@@ -67,9 +67,15 @@ class MockDatabase {
   async createProduct(data: Omit<Product, 'id'>): Promise<Product> {
     await this.delay()
     const category = this.categories.find(c => c.id === data.category_id)
+    
+    // Calculer le display_order pour le nouveau produit
+    const categoryProducts = this.products.filter(p => p.category_id === data.category_id)
+    const maxOrder = Math.max(...categoryProducts.map(p => p.display_order || 0), -1)
+    
     const newProduct: Product = {
       ...data,
       id: `prod-${Date.now()}`,
+      display_order: data.display_order ?? maxOrder + 1,
       categories: category ? { name: category.name } : undefined
     }
     this.products.push(newProduct)
