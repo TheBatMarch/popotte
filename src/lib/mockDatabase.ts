@@ -111,7 +111,7 @@ class MockDatabase {
 
   async moveProductUp(productId: string, categoryId: string): Promise<void> {
     await this.delay()
-    console.log('🔼 Moving product UP:', productId, 'in category:', categoryId)
+    console.log('🔼 Moving product UP:', productId, 'in category:', categoryId || 'no-category')
     
     // Gérer le cas des produits sans catégorie
     const actualCategoryId = categoryId === '' ? null : categoryId
@@ -119,7 +119,7 @@ class MockDatabase {
     // Récupérer tous les produits de la même catégorie, triés par display_order
     const categoryProducts = this.products
       .filter(p => p.category_id === actualCategoryId)
-      .sort((a, b) => (a.display_order || 1) - (b.display_order || 1))
+      .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
     
     console.log('📋 Products in category:', categoryProducts.map(p => ({ 
       id: p.id, 
@@ -148,8 +148,8 @@ class MockDatabase {
       previous: { name: previousProduct.name, order: previousProduct.display_order }
     })
     
-    const tempOrder = currentProduct.display_order || 1
-    currentProduct.display_order = previousProduct.display_order || 1
+    const tempOrder = currentProduct.display_order || 0
+    currentProduct.display_order = previousProduct.display_order || 0
     previousProduct.display_order = tempOrder
     
     // Mettre à jour dans la liste principale
@@ -167,7 +167,7 @@ class MockDatabase {
 
   async moveProductDown(productId: string, categoryId: string): Promise<void> {
     await this.delay()
-    console.log('🔽 Moving product DOWN:', productId, 'in category:', categoryId)
+    console.log('🔽 Moving product DOWN:', productId, 'in category:', categoryId || 'no-category')
     
     // Gérer le cas des produits sans catégorie
     const actualCategoryId = categoryId === '' ? null : categoryId
@@ -175,7 +175,7 @@ class MockDatabase {
     // Récupérer tous les produits de la même catégorie, triés par display_order
     const categoryProducts = this.products
       .filter(p => p.category_id === actualCategoryId)
-      .sort((a, b) => (a.display_order || 1) - (b.display_order || 1))
+      .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
     
     console.log('📋 Products in category:', categoryProducts.map(p => ({ 
       id: p.id, 
@@ -204,8 +204,8 @@ class MockDatabase {
       next: { name: nextProduct.name, order: nextProduct.display_order }
     })
     
-    const tempOrder = currentProduct.display_order || 1
-    currentProduct.display_order = nextProduct.display_order || 1
+    const tempOrder = currentProduct.display_order || 0
+    currentProduct.display_order = nextProduct.display_order || 0
     nextProduct.display_order = tempOrder
     
     // Mettre à jour dans la liste principale
