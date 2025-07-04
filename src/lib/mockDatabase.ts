@@ -106,6 +106,17 @@ class MockDatabase {
     return this.categories.sort((a, b) => a.display_order - b.display_order)
   }
 
+  async createCategory(data: Omit<Category, 'id' | 'created_at'>): Promise<Category> {
+    await this.delay()
+    const newCategory: Category = {
+      ...data,
+      id: `cat-${Date.now()}`,
+      created_at: new Date().toISOString()
+    }
+    this.categories.push(newCategory)
+    return newCategory
+  }
+
   // ORDERS
   async getOrders(userId?: string): Promise<Order[]> {
     await this.delay()

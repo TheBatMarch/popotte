@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { Plus, Edit, Trash2, Save, X } from 'lucide-react'
+import { Plus, Edit, Trash2, Save, X, FolderPlus } from 'lucide-react'
 import { mockDatabase } from '../../lib/mockDatabase'
+import { ImageUpload } from '../../components/ImageUpload'
 import type { Product, Category } from '../../lib/mockData'
 
 export function Products() {
@@ -8,14 +9,19 @@ export function Products() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
-  const [isCreating, setIsCreating] = useState(false)
-  const [formData, setFormData] = useState({
+  const [isCreatingProduct, setIsCreatingProduct] = useState(false)
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false)
+  const [productFormData, setProductFormData] = useState({
     name: '',
     description: '',
     price: '',
     category_id: '',
     image_url: '',
     is_available: true
+  })
+  const [categoryFormData, setCategoryFormData] = useState({
+    name: '',
+    slug: ''
   })
 
   useEffect(() => {
@@ -43,17 +49,17 @@ export function Products() {
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     try {
       const productData = {
-        name: formData.name,
-        description: formData.description || null,
-        price: parseFloat(formData.price),
-        category_id: formData.category_id || null,
-        image_url: formData.image_url || null,
-        is_available: formData.is_available
+        name: productFormData.name,
+        description: productFormData.description || null,
+        price: parseFloat(productFormData.price),
+        category_id: productFormData.category_id || null,
+        image_url: productFormData.image_url || null,
+        is_available: productFormData.is_available
       }
 
       if (editingProduct) {
@@ -62,7 +68,7 @@ export function Products() {
         await mockDatabase.createProduct(productData)
       }
 
-      setFormData({
+      setProductFormData({
         name: '',
         description: '',
         price: '',
@@ -71,7 +77,7 @@ export function Products() {
         is_available: true
       })
       setEditingProduct(null)
-      setIsCreating(false)
+      setIsCreatingProduct(false)
       fetchProducts()
       alert(editingProduct ? 'Produit modifié !' : 'Produit créé !')
     } catch (error: any) {
@@ -79,9 +85,28 @@ export function Products() {
     }
   }
 
-  const handleEdit = (product: Product) => {
+  const handleCategorySubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    try {
+      await mockDatabase.createCategory({
+        name: categoryFormData.name,
+        slug: categoryFormData.slug || categoryFormData.name.toLowerCase().replace(/\s+/g, '-'),
+        display_order: categories.length
+      })
+
+      setCategoryFormData({ name: '', slug: '' })
+      setIsCreatingCategory(false)
+      fetchCategories()
+      alert('Catégorie créée !')
+    } catch (error: any) {
+      alert('Erreur : ' + error.message)
+    }
+  }
+
+  const handleEditProduct = (product: Product) => {
     setEditingProduct(product)
-    setFormData({
+    setProductFormData({
       name: product.name,
       description: product.description || '',
       price: product.price.toString(),
@@ -89,10 +114,10 @@ export function Products() {
       image_url: product.image_url || '',
       is_available: product.is_available
     })
-    setIsCreating(true)
+    setIsCreatingProduct(true)
   }
 
-  const handleDelete = async (productId: string) => {
+  const handleDeleteProduct = async (productId: string) => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) return
 
     try {
@@ -104,8 +129,8 @@ export function Products() {
     }
   }
 
-  const handleCancel = () => {
-    setFormData({
+  const handleCancelProduct = () => {
+    setProductFormData({
       name: '',
       description: '',
       price: '',
@@ -114,8 +139,23 @@ export function Products() {
       is_available: true
     })
     setEditingProduct(null)
-    setIsCreating(false)
+    setIsCreatingProduct(false)
   }
+
+  const handleCancelCategory = () => {
+    setCategoryFormData({ name: '', slug: '' })
+    setIsCreatingCategory(false)
+  }
+
+  // Grouper les produits par catégorie
+  const groupedProducts = products.reduce((acc, product) => {
+    const categoryName = product.categories?.name || 'Sans catégorie'
+    if (!acc[categoryName]) {
+      acc[categoryName] = []
+    }
+    acc[categoryName].push(product)
+    return acc
+  }, {} as Record<string, Product[]>)
 
   if (loading) {
     return (
@@ -129,37 +169,108 @@ export function Products() {
     <div className="space-y-6">
       <div className="card bg-blue-50 border-blue-200">
         <p className="text-sm text-blue-700">
-          💡 Mode démonstration - Les produits sont stockés temporairement.
+          💡 Mode démonstration - Les produits et catégories sont stockés temporairement.
         </p>
       </div>
 
       <div className="flex items-center justify-between">
-        {!isCreating && (
-          <button
-            onClick={() => setIsCreating(true)}
-            className="btn-primary flex items-center space-x-2"
-          >
-            <Plus size={20} />
-            <span>Nouveau produit</span>
-          </button>
-        )}
+        <div className="flex space-x-2">
+          {!isCreatingProduct && !isCreatingCategory && (
+            <>
+              <button
+                onClick={() => setIsCreatingProduct(true)}
+                className="btn-primary flex items-center space-x-2"
+              >
+                <Plus size={20} />
+                <span>Nouveau produit</span>
+              </button>
+              <button
+                onClick={() => setIsCreatingCategory(true)}
+                className="btn-secondary flex items-center space-x-2"
+              >
+                <FolderPlus size={20} />
+                <span>Nouvelle catégorie</span>
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
-      {isCreating && (
+      {/* Formulaire de création/modification de catégorie */}
+      {isCreatingCategory && (
         <div className="card">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">
-              {editingProduct ? 'Modifier le produit' : 'Nouveau produit'}
-            </h3>
+            <h3 className="text-lg font-semibold">Nouvelle catégorie</h3>
             <button
-              onClick={handleCancel}
+              onClick={handleCancelCategory}
               className="text-gray-500 hover:text-gray-700"
             >
               <X size={20} />
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleCategorySubmit} className="space-y-4">
+            <div>
+              <label htmlFor="categoryName" className="block text-sm font-medium text-gray-700">
+                Nom de la catégorie
+              </label>
+              <input
+                id="categoryName"
+                type="text"
+                value={categoryFormData.name}
+                onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
+                className="input mt-1"
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="categorySlug" className="block text-sm font-medium text-gray-700">
+                Slug (optionnel)
+              </label>
+              <input
+                id="categorySlug"
+                type="text"
+                value={categoryFormData.slug}
+                onChange={(e) => setCategoryFormData({ ...categoryFormData, slug: e.target.value })}
+                className="input mt-1"
+                placeholder="sera généré automatiquement si vide"
+              />
+            </div>
+
+            <div className="flex space-x-2">
+              <button type="submit" className="btn-primary flex items-center space-x-2">
+                <Save size={20} />
+                <span>Créer</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleCancelCategory}
+                className="btn-secondary"
+              >
+                Annuler
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Formulaire de création/modification de produit */}
+      {isCreatingProduct && (
+        <div className="card">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold">
+              {editingProduct ? 'Modifier le produit' : 'Nouveau produit'}
+            </h3>
+            <button
+              onClick={handleCancelProduct}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          <form onSubmit={handleProductSubmit} className="space-y-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                 Nom du produit
@@ -167,8 +278,8 @@ export function Products() {
               <input
                 id="name"
                 type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                value={productFormData.name}
+                onChange={(e) => setProductFormData({ ...productFormData, name: e.target.value })}
                 className="input mt-1"
                 required
               />
@@ -180,8 +291,8 @@ export function Products() {
               </label>
               <textarea
                 id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                value={productFormData.description}
+                onChange={(e) => setProductFormData({ ...productFormData, description: e.target.value })}
                 className="input mt-1 h-20 resize-none"
               />
             </div>
@@ -195,8 +306,8 @@ export function Products() {
                 type="number"
                 step="0.01"
                 min="0"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                value={productFormData.price}
+                onChange={(e) => setProductFormData({ ...productFormData, price: e.target.value })}
                 className="input mt-1"
                 required
               />
@@ -208,8 +319,8 @@ export function Products() {
               </label>
               <select
                 id="category_id"
-                value={formData.category_id}
-                onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+                value={productFormData.category_id}
+                onChange={(e) => setProductFormData({ ...productFormData, category_id: e.target.value })}
                 className="input mt-1"
               >
                 <option value="">Aucune catégorie</option>
@@ -222,16 +333,13 @@ export function Products() {
             </div>
 
             <div>
-              <label htmlFor="image_url" className="block text-sm font-medium text-gray-700">
-                URL de l'image (optionnel)
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Image du produit
               </label>
-              <input
-                id="image_url"
-                type="url"
-                value={formData.image_url}
-                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                className="input mt-1"
-                placeholder="https://example.com/image.jpg"
+              <ImageUpload
+                value={productFormData.image_url}
+                onChange={(imageData) => setProductFormData({ ...productFormData, image_url: imageData || '' })}
+                placeholder="Ajouter une image du produit"
               />
             </div>
 
@@ -239,8 +347,8 @@ export function Products() {
               <input
                 id="is_available"
                 type="checkbox"
-                checked={formData.is_available}
-                onChange={(e) => setFormData({ ...formData, is_available: e.target.checked })}
+                checked={productFormData.is_available}
+                onChange={(e) => setProductFormData({ ...productFormData, is_available: e.target.checked })}
                 className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
               />
               <label htmlFor="is_available" className="ml-2 block text-sm text-gray-900">
@@ -255,7 +363,7 @@ export function Products() {
               </button>
               <button
                 type="button"
-                onClick={handleCancel}
+                onClick={handleCancelProduct}
                 className="btn-secondary"
               >
                 Annuler
@@ -265,61 +373,72 @@ export function Products() {
         </div>
       )}
 
-      <div className="space-y-4">
-        {products.length === 0 ? (
+      {/* Liste des produits groupés par catégorie */}
+      <div className="space-y-6">
+        {Object.keys(groupedProducts).length === 0 ? (
           <div className="card text-center py-8">
             <p className="text-gray-500">Aucun produit trouvé.</p>
           </div>
         ) : (
-          products.map((product) => (
-            <div key={product.id} className="card">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <h3 className="text-lg font-semibold">{product.name}</h3>
-                    {!product.is_available && (
-                      <span className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
-                        Indisponible
-                      </span>
-                    )}
+          Object.entries(groupedProducts).map(([categoryName, categoryProducts]) => (
+            <div key={categoryName} className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <h2 className="text-lg font-semibold text-gray-800">{categoryName}</h2>
+                <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">
+                  {categoryProducts.length} produit{categoryProducts.length > 1 ? 's' : ''}
+                </span>
+              </div>
+              
+              <div className="grid gap-4">
+                {categoryProducts.map((product) => (
+                  <div key={product.id} className="card">
+                    <div className="flex justify-between items-start">
+                      <div className="flex space-x-4 flex-1">
+                        {product.image_url && (
+                          <img
+                            src={product.image_url}
+                            alt={product.name}
+                            className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
+                          />
+                        )}
+                        
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <h3 className="text-lg font-semibold">{product.name}</h3>
+                            {!product.is_available && (
+                              <span className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
+                                Indisponible
+                              </span>
+                            )}
+                          </div>
+                          
+                          {product.description && (
+                            <p className="text-gray-600 mb-2">{product.description}</p>
+                          )}
+                          
+                          <div className="text-lg font-semibold text-primary-600">
+                            {product.price.toFixed(2)} €
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex space-x-2 ml-4">
+                        <button
+                          onClick={() => handleEditProduct(product)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteProduct(product.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  
-                  {product.description && (
-                    <p className="text-gray-600 mb-2">{product.description}</p>
-                  )}
-                  
-                  <div className="flex items-center space-x-4 text-sm text-gray-500">
-                    <span className="font-semibold text-primary-600">
-                      {product.price.toFixed(2)} €
-                    </span>
-                    {product.categories && (
-                      <span>Catégorie: {product.categories.name}</span>
-                    )}
-                  </div>
-                  
-                  {product.image_url && (
-                    <img
-                      src={product.image_url}
-                      alt={product.name}
-                      className="w-20 h-20 object-cover rounded-lg mt-2"
-                    />
-                  )}
-                </div>
-                
-                <div className="flex space-x-2 ml-4">
-                  <button
-                    onClick={() => handleEdit(product)}
-                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                  >
-                    <Edit size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(product.id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
+                ))}
               </div>
             </div>
           ))

@@ -22,6 +22,7 @@ export interface Category {
   name: string
   slug: string
   display_order: number
+  created_at: string
 }
 
 export interface Product {

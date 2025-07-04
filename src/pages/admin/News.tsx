@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Plus, Edit, Trash2, Save, X } from 'lucide-react'
 import { mockDatabase } from '../../lib/mockDatabase'
+import { ImageUpload } from '../../components/ImageUpload'
 import type { NewsPost } from '../../lib/mockData'
 
 export function News() {
@@ -175,16 +176,13 @@ export function News() {
             </div>
 
             <div>
-              <label htmlFor="image_url" className="block text-sm font-medium text-gray-700">
-                URL de l'image (optionnel)
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Image de l'article
               </label>
-              <input
-                id="image_url"
-                type="url"
+              <ImageUpload
                 value={formData.image_url}
-                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                className="input mt-1"
-                placeholder="https://example.com/image.jpg"
+                onChange={(imageData) => setFormData({ ...formData, image_url: imageData || '' })}
+                placeholder="Ajouter une image pour l'article"
               />
             </div>
 
