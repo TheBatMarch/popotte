@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Calendar } from 'lucide-react'
 import { database } from '../lib/database'
 import { initializeDatabase } from '../lib/initializeDatabase'
+import { checkDatabaseContent } from '../lib/checkDatabase'
 import type { NewsPost } from '../lib/database'
 
 const logoUrl = '/ChatGPT Image 4 juil. 2025, 23_49_33.png'
@@ -18,6 +19,23 @@ export function Home() {
   const initializeData = async () => {
     try {
       setSeeding(true)
+      
+      // Vérifier d'abord le contenu existant
+      console.log('🔍 Vérification du contenu actuel...')
+      const summary = await checkDatabaseContent()
+      
+      // Si la base est vide, l'initialiser
+      if (summary.categories === 0 && summary.products === 0 && summary.news === 0) {
+        console.log('📦 Base de données vide, initialisation...')
+        await initializeDatabase()
+        
+        // Vérifier à nouveau après initialisation
+        console.log('🔍 Vérification après initialisation...')
+        await checkDatabaseContent()
+      } else {
+        console.log('✅ Base de données déjà remplie')
+      }
+      
       await initializeDatabase()
       await fetchNewsPosts()
     } catch (error) {
@@ -39,7 +57,13 @@ export function Home() {
   }
 
   const retrySeeding = async () => {
+    console.log('🔄 Nouvelle tentative d\'initialisation...')
     await initializeData()
+  }
+  
+  const forceCheck = async () => {
+    console.log('🔍 Vérification forcée de la base de données...')
+    await checkDatabaseContent()
   }
 
   if (seeding) {
@@ -109,6 +133,12 @@ export function Home() {
             className="btn-primary mt-4"
           >
             Réessayer l'initialisation
+          </button>
+          <button 
+            onClick={forceCheck}
+            className="btn-secondary mt-2"
+          >
+            Vérifier la base de données
           </button>
         </div>
       </div>
