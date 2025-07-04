@@ -44,6 +44,7 @@ export interface Order {
   total_amount: number
   status: 'pending' | 'payment_notified' | 'confirmed' | 'cancelled'
   payment_initiated_at: string | null
+  payment_notified_at: string | null
   confirmed_at: string | null
   created_at: string
   order_items: OrderItem[]
@@ -336,6 +337,9 @@ export const MOCK_ORDERS: Order[] = [
     user_id: 'user-2',
     total_amount: 23.50,
     status: 'pending',
+    payment_initiated_at: null,
+    payment_notified_at: null,
+    confirmed_at: null,
     created_at: new Date().toISOString(),
     profiles: {
       full_name: 'Marie Dupont',
@@ -367,6 +371,9 @@ export const MOCK_ORDERS: Order[] = [
     user_id: 'user-3',
     total_amount: 15.50,
     status: 'payment_notified',
+    payment_initiated_at: new Date(Date.now() - 3600000).toISOString(), // Il y a 1h
+    payment_notified_at: new Date(Date.now() - 3600000).toISOString(),
+    confirmed_at: null,
     created_at: new Date(Date.now() - 86400000).toISOString(),
     profiles: {
       full_name: 'Jean Martin',
@@ -398,6 +405,9 @@ export const MOCK_ORDERS: Order[] = [
     user_id: 'user-4',
     total_amount: 18.00,
     status: 'confirmed',
+    payment_initiated_at: new Date(Date.now() - 259200000).toISOString(), // Il y a 3 jours
+    payment_notified_at: new Date(Date.now() - 259200000).toISOString(),
+    confirmed_at: new Date(Date.now() - 172800000).toISOString(), // Il y a 2 jours
     created_at: new Date(Date.now() - 172800000).toISOString(),
     profiles: {
       full_name: 'Sophie Bernard',

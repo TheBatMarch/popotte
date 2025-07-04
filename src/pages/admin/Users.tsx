@@ -59,7 +59,8 @@ export function Users() {
   const confirmPayment = async (orderId: string) => {
     try {
       await mockDatabase.updateOrder(orderId, { status: 'confirmed' })
-      
+        status: 'confirmed',
+        confirmed_at: new Date().toISOString()
       if (selectedUser) {
         fetchUserOrders(selectedUser.id)
         calculateUserDebts() // Recalculer les dettes après confirmation

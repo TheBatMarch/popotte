@@ -104,6 +104,9 @@ export function Orders() {
         {notifiedOrders.length === 0 ? (
           <div className="card text-center py-8">
             <p className="text-gray-500">Aucun paiement à vérifier.</p>
+            <p className="text-xs text-gray-400 mt-2">
+              Les paiements apparaîtront ici après notification par les utilisateurs
+            </p>
           </div>
         ) : (
           notifiedOrders.map((order) => (
@@ -115,9 +118,9 @@ export function Orders() {
                   <p className="text-xs text-gray-500">
                     Commande: {formatDate(order.created_at)}
                   </p>
-                  {order.payment_initiated_at && (
+                  {order.payment_notified_at && (
                     <p className="text-xs text-orange-600">
-                      Paiement notifié: {formatPaymentDate(order.payment_initiated_at)}
+                      Paiement notifié: {formatPaymentDate(order.payment_notified_at)}
                     </p>
                   )}
                 </div>

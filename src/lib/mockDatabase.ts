@@ -194,6 +194,7 @@ class MockDatabase {
       total_amount: data.total_amount,
       status: 'pending',
       payment_initiated_at: null,
+      payment_notified_at: null,
       confirmed_at: null,
       created_at: new Date().toISOString(),
       order_items: orderItems,

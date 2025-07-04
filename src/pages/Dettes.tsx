@@ -42,7 +42,8 @@ export function Dettes() {
       for (const orderId of pendingOrderIds) {
         await mockDatabase.updateOrder(orderId, { 
           status: 'payment_notified',
-          payment_initiated_at: new Date().toISOString()
+          payment_initiated_at: new Date().toISOString(),
+          payment_notified_at: new Date().toISOString()
         })
       }
       
