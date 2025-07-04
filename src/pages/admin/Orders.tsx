@@ -5,7 +5,6 @@ import type { Order } from '../../lib/mockData'
 export function Orders() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<'all' | 'pending' | 'payment_notified' | 'confirmed' | 'cancelled'>('all')
 
   useEffect(() => {
     fetchOrders()
@@ -64,18 +63,8 @@ export function Orders() {
     }
   }
 
-  const filteredOrders = orders.filter(order => 
-    filter === 'all' || order.status === filter
-  )
-
-  const stats = {
-    total: orders.length,
-    pending: orders.filter(o => o.status === 'pending').length,
-    notified: orders.filter(o => o.status === 'payment_notified').length,
-    confirmed: orders.filter(o => o.status === 'confirmed').length,
-    cancelled: orders.filter(o => o.status === 'cancelled').length,
-    totalAmount: orders.reduce((sum, o) => sum + o.total_amount, 0)
-  }
+  // Afficher uniquement les paiements notifiés
+  const notifiedOrders = orders.filter(order => order.status === 'payment_notified')
 
   if (loading) {
     return (
@@ -87,67 +76,24 @@ export function Orders() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold">Gestion des commandes</h2>
-
       <div className="card bg-blue-50 border-blue-200">
         <p className="text-sm text-blue-700">
-          💡 Données de démonstration - Gestion factice des commandes.
+          💡 Données de démonstration - Vérification factice des paiements.
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="card text-center">
-          <div className="text-2xl font-bold text-primary-600">{stats.total}</div>
-          <div className="text-sm text-gray-600">Total commandes</div>
-        </div>
-        <div className="card text-center">
-          <div className="text-2xl font-bold text-green-600">{stats.totalAmount.toFixed(2)} €</div>
-          <div className="text-sm text-gray-600">Chiffre d'affaires</div>
-        </div>
-      </div>
-
-      <div className="flex space-x-2 overflow-x-auto">
-        <button
-          onClick={() => setFilter('all')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${
-            filter === 'all' ? 'bg-primary-500 text-white' : 'bg-gray-200 text-gray-700'
-          }`}
-        >
-          Toutes ({stats.total})
-        </button>
-        <button
-          onClick={() => setFilter('pending')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${
-            filter === 'pending' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700'
-          }`}
-        >
-          En attente ({stats.pending})
-        </button>
-        <button
-          onClick={() => setFilter('payment_notified')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${
-            filter === 'payment_notified' ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-700'
-          }`}
-        >
-          Notifiées ({stats.notified})
-        </button>
-        <button
-          onClick={() => setFilter('confirmed')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${
-            filter === 'confirmed' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700'
-          }`}
-        >
-          Confirmées ({stats.confirmed})
-        </button>
+      <div className="card text-center">
+        <div className="text-2xl font-bold text-orange-600">{notifiedOrders.length}</div>
+        <div className="text-sm text-gray-600">Paiements à vérifier</div>
       </div>
 
       <div className="space-y-4">
-        {filteredOrders.length === 0 ? (
+        {notifiedOrders.length === 0 ? (
           <div className="card text-center py-8">
-            <p className="text-gray-500">Aucune commande trouvée.</p>
+            <p className="text-gray-500">Aucun paiement à vérifier.</p>
           </div>
         ) : (
-          filteredOrders.map((order) => (
+          notifiedOrders.map((order) => (
             <div key={order.id} className={`card border-l-4 ${getStatusColor(order.status)}`}>
               <div className="flex justify-between items-start mb-3">
                 <div>

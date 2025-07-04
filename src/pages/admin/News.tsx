@@ -113,8 +113,13 @@ export function News() {
 
   return (
     <div className="space-y-6">
+      <div className="card bg-blue-50 border-blue-200">
+        <p className="text-sm text-blue-700">
+          💡 Mode démonstration - Les articles sont stockés temporairement.
+        </p>
+      </div>
+
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Gestion des actualités</h2>
         {!isCreating && (
           <button
             onClick={() => setIsCreating(true)}
@@ -124,12 +129,6 @@ export function News() {
             <span>Nouvel article</span>
           </button>
         )}
-      </div>
-
-      <div className="card bg-blue-50 border-blue-200">
-        <p className="text-sm text-blue-700">
-          💡 Mode démonstration - Les articles sont stockés temporairement.
-        </p>
       </div>
 
       {isCreating && (

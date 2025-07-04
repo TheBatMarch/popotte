@@ -204,17 +204,17 @@ export function Parametres() {
           {profile?.role === 'admin' && (
             <button
               onClick={() => setCurrentView('orders')}
-              className="card hover:bg-green-50 transition-colors cursor-pointer border-l-4 border-green-500 text-left"
+              className="card hover:bg-orange-50 transition-colors cursor-pointer border-l-4 border-orange-500 text-left"
             >
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                  <CreditCard className="text-green-600" size={24} />
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                  <CreditCard className="text-orange-600" size={24} />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-green-900">Gestion des commandes</h3>
-                  <p className="text-sm text-green-600">Suivi des paiements et confirmations</p>
+                  <h3 className="font-semibold text-orange-900">Paiements à vérifier</h3>
+                  <p className="text-sm text-orange-600">Confirmer les paiements notifiés</p>
                 </div>
-                <span className="text-green-400">→</span>
+                <span className="text-orange-400">→</span>
               </div>
             </button>
           )}
@@ -301,7 +301,7 @@ export function Parametres() {
         <h1 className="text-2xl font-bold text-gray-900">
           {currentView === 'main' ? 'Paramètres' : 
            currentView === 'users' ? 'Gestion des utilisateurs' :
-           currentView === 'orders' ? 'Gestion des commandes' :
+           currentView === 'orders' ? 'Paiements à vérifier' :
            currentView === 'news' ? 'Gestion des actualités' :
            currentView === 'products' ? 'Gestion des produits' :
            currentView === 'profile' ? 'Mon profil' : 'Paramètres'}
