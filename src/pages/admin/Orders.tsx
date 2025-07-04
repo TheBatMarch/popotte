@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase'
 interface OrderWithDetails {
   id: string
   total_amount: number
-  status: 'pending' | 'payment_notified' | 'paid'
+  status: 'pending' | 'payment_notified' | 'confirmed' | 'cancelled'
   created_at: string
   profiles: {
     full_name: string
@@ -14,6 +14,7 @@ interface OrderWithDetails {
     id: string
     quantity: number
     unit_price: number
+    total_price: number
     products: {
       name: string
     }
@@ -23,7 +24,7 @@ interface OrderWithDetails {
 export function Orders() {
   const [orders, setOrders] = useState<OrderWithDetails[]>([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<'all' | 'pending' | 'payment_notified' | 'paid'>('all')
+  const [filter, setFilter] = useState<'all' | 'pending' | 'payment_notified' | 'confirmed' | 'cancelled'>('all')
 
   useEffect(() => {
     fetchOrders()
@@ -43,6 +44,7 @@ export function Orders() {
             id,
             quantity,
             unit_price,
+            total_price,
             products (
               name
             )
@@ -63,7 +65,7 @@ export function Orders() {
     try {
       const { error } = await supabase
         .from('orders')
-        .update({ status: 'paid' })
+        .update({ status: 'confirmed' })
         .eq('id', orderId)
 
       if (error) throw error
@@ -90,7 +92,8 @@ export function Orders() {
     switch (status) {
       case 'pending': return 'border-red-500 bg-red-50'
       case 'payment_notified': return 'border-orange-500 bg-orange-50'
-      case 'paid': return 'border-green-500 bg-green-50'
+      case 'confirmed': return 'border-green-500 bg-green-50'
+      case 'cancelled': return 'border-gray-500 bg-gray-50'
       default: return 'border-gray-500 bg-gray-50'
     }
   }
@@ -99,7 +102,8 @@ export function Orders() {
     switch (status) {
       case 'pending': return 'En attente'
       case 'payment_notified': return 'Paiement notifié'
-      case 'paid': return 'Payé'
+      case 'confirmed': return 'Confirmé'
+      case 'cancelled': return 'Annulé'
       default: return status
     }
   }
@@ -112,7 +116,8 @@ export function Orders() {
     total: orders.length,
     pending: orders.filter(o => o.status === 'pending').length,
     notified: orders.filter(o => o.status === 'payment_notified').length,
-    paid: orders.filter(o => o.status === 'paid').length,
+    confirmed: orders.filter(o => o.status === 'confirmed').length,
+    cancelled: orders.filter(o => o.status === 'cancelled').length,
     totalAmount: orders.reduce((sum, o) => sum + o.total_amount, 0)
   }
 
@@ -165,12 +170,12 @@ export function Orders() {
           Notifiées ({stats.notified})
         </button>
         <button
-          onClick={() => setFilter('paid')}
+          onClick={() => setFilter('confirmed')}
           className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${
-            filter === 'paid' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700'
+            filter === 'confirmed' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700'
           }`}
         >
-          Payées ({stats.paid})
+          Confirmées ({stats.confirmed})
         </button>
       </div>
 
@@ -200,7 +205,7 @@ export function Orders() {
                 {order.order_items.map((item) => (
                   <div key={item.id} className="text-sm text-gray-600 flex justify-between">
                     <span>{item.quantity}x {item.products.name}</span>
-                    <span>{(item.quantity * item.unit_price).toFixed(2)} €</span>
+                    <span>{item.total_price.toFixed(2)} €</span>
                   </div>
                 ))}
               </div>

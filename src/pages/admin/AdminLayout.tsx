@@ -1,4 +1,3 @@
-import React from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { Users, CreditCard, FileText, Package, ArrowLeft } from 'lucide-react'
 
@@ -39,16 +38,6 @@ export function AdminLayout() {
         </Link>
 
         <Link
-          to="/admin/products"
-          className={`card text-center py-4 transition-colors ${
-            isActive('/admin/products') ? 'bg-primary-50 border-primary-200' : 'hover:bg-gray-50'
-          }`}
-        >
-          <Package className="mx-auto mb-2 text-primary-500" size={24} />
-          <span className="text-sm font-medium">Produits</span>
-        </Link>
-
-        <Link
           to="/admin/news"
           className={`card text-center py-4 transition-colors ${
             isActive('/admin/news') ? 'bg-primary-50 border-primary-200' : 'hover:bg-gray-50'
@@ -56,6 +45,16 @@ export function AdminLayout() {
         >
           <FileText className="mx-auto mb-2 text-primary-500" size={24} />
           <span className="text-sm font-medium">Actualités</span>
+        </Link>
+
+        <Link
+          to="/admin/products"
+          className={`card text-center py-4 transition-colors ${
+            isActive('/admin/products') ? 'bg-primary-50 border-primary-200' : 'hover:bg-gray-50'
+          }`}
+        >
+          <Package className="mx-auto mb-2 text-primary-500" size={24} />
+          <span className="text-sm font-medium">Produits</span>
         </Link>
       </div>
 

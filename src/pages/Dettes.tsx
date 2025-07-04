@@ -6,12 +6,13 @@ import { useAuth } from '../contexts/AuthContext'
 interface Order {
   id: string
   total_amount: number
-  status: 'pending' | 'payment_notified' | 'paid'
+  status: 'pending' | 'payment_notified' | 'confirmed' | 'cancelled'
   created_at: string
   order_items: {
     id: string
     quantity: number
     unit_price: number
+    total_price: number
     products: {
       name: string
     }
@@ -41,6 +42,7 @@ export function Dettes() {
             id,
             quantity,
             unit_price,
+            total_price,
             products (
               name
             )
@@ -62,7 +64,10 @@ export function Dettes() {
     try {
       const { error } = await supabase
         .from('orders')
-        .update({ status: 'payment_notified' })
+        .update({ 
+          status: 'payment_notified',
+          payment_notified_at: new Date().toISOString()
+        })
         .eq('id', orderId)
 
       if (error) throw error
@@ -88,7 +93,7 @@ export function Dettes() {
 
   const pendingOrders = orders.filter(order => order.status === 'pending')
   const notifiedOrders = orders.filter(order => order.status === 'payment_notified')
-  const paidOrders = orders.filter(order => order.status === 'paid')
+  const confirmedOrders = orders.filter(order => order.status === 'confirmed')
 
   const pendingTotal = pendingOrders.reduce((sum, order) => sum + order.total_amount, 0)
 
@@ -128,7 +133,7 @@ export function Dettes() {
                 <div className="space-y-1">
                   {order.order_items.map((item) => (
                     <div key={item.id} className="text-sm text-gray-600">
-                      {item.quantity}x {item.products.name} - {(item.quantity * item.unit_price).toFixed(2)} €
+                      {item.quantity}x {item.products.name} - {item.total_price.toFixed(2)} €
                     </div>
                   ))}
                 </div>
@@ -188,7 +193,7 @@ export function Dettes() {
               <div className="space-y-1">
                 {order.order_items.map((item) => (
                   <div key={item.id} className="text-sm text-gray-600">
-                    {item.quantity}x {item.products.name} - {(item.quantity * item.unit_price).toFixed(2)} €
+                    {item.quantity}x {item.products.name} - {item.total_price.toFixed(2)} €
                   </div>
                 ))}
               </div>
@@ -202,11 +207,11 @@ export function Dettes() {
       )}
 
       {/* Dettes réglées */}
-      {paidOrders.length > 0 && (
+      {confirmedOrders.length > 0 && (
         <div className="space-y-4">
           <h2 className="text-lg font-semibold text-green-600">Mes dettes réglées</h2>
           
-          {paidOrders.map((order) => (
+          {confirmedOrders.map((order) => (
             <div key={order.id} className="card border-l-4 border-green-500">
               <div className="flex justify-between items-start mb-2">
                 <span className="text-sm text-gray-500">
@@ -220,13 +225,13 @@ export function Dettes() {
               <div className="space-y-1">
                 {order.order_items.map((item) => (
                   <div key={item.id} className="text-sm text-gray-600">
-                    {item.quantity}x {item.products.name} - {(item.quantity * item.unit_price).toFixed(2)} €
+                    {item.quantity}x {item.products.name} - {item.total_price.toFixed(2)} €
                   </div>
                 ))}
               </div>
               
               <div className="mt-2 text-sm text-green-600 font-medium">
-                ✓ Payé
+                ✓ Confirmé
               </div>
             </div>
           ))}

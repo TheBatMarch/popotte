@@ -11,7 +11,6 @@ interface NewsPost {
   author_id: string | null
   published: boolean
   created_at: string
-  updated_at: string
 }
 
 export function News() {
@@ -24,7 +23,7 @@ export function News() {
     content: '',
     excerpt: '',
     image_url: '',
-    published: false
+    published: true
   })
 
   useEffect(() => {
@@ -81,7 +80,7 @@ export function News() {
       }
 
       // Reset form and refresh posts
-      setFormData({ title: '', content: '', excerpt: '', image_url: '', published: false })
+      setFormData({ title: '', content: '', excerpt: '', image_url: '', published: true })
       setEditingPost(null)
       setIsCreating(false)
       fetchPosts()
@@ -122,7 +121,7 @@ export function News() {
   }
 
   const handleCancel = () => {
-    setFormData({ title: '', content: '', excerpt: '', image_url: '', published: false })
+    setFormData({ title: '', content: '', excerpt: '', image_url: '', published: true })
     setEditingPost(null)
     setIsCreating(false)
   }
@@ -193,12 +192,13 @@ export function News() {
               <label htmlFor="excerpt" className="block text-sm font-medium text-gray-700">
                 Extrait (optionnel)
               </label>
-              <textarea
+              <input
                 id="excerpt"
+                type="text"
                 value={formData.excerpt}
                 onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-                className="input mt-1 h-20 resize-none"
-                placeholder="Résumé court de l'article..."
+                className="input mt-1"
+                placeholder="Résumé court de l'article"
               />
             </div>
 
@@ -279,13 +279,11 @@ export function News() {
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-1">
                     <h3 className="text-lg font-semibold">{post.title}</h3>
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      post.published 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {post.published ? 'Publié' : 'Brouillon'}
-                    </span>
+                    {!post.published && (
+                      <span className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">
+                        Brouillon
+                      </span>
+                    )}
                   </div>
                   <p className="text-sm text-gray-500 mb-2">
                     {formatDate(post.created_at)}

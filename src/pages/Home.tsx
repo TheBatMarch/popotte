@@ -10,10 +10,7 @@ interface NewsPost {
   content: string
   excerpt: string | null
   image_url: string | null
-  author_id: string | null
-  published: boolean
   created_at: string
-  updated_at: string
 }
 
 export function Home() {
@@ -99,7 +96,7 @@ export function Home() {
               </div>
               <h3 className="text-lg font-semibold mb-2">{post.title}</h3>
               {post.excerpt && (
-                <p className="text-gray-600 mb-2">{post.excerpt}</p>
+                <p className="text-gray-600 mb-2 italic">{post.excerpt}</p>
               )}
               <p className="text-gray-600 whitespace-pre-wrap">{post.content}</p>
             </article>

@@ -13,7 +13,6 @@ interface Product {
   is_available: boolean
   categories?: {
     name: string
-    slug: string
   }
 }
 
@@ -40,8 +39,7 @@ export function Commande() {
         .select(`
           *,
           categories (
-            name,
-            slug
+            name
           )
         `)
         .eq('is_available', true)
@@ -119,7 +117,7 @@ export function Commande() {
         product_id: item.product.id,
         quantity: item.quantity,
         unit_price: item.product.price,
-        total_price: item.quantity * item.product.price
+        total_price: item.product.price * item.quantity
       }))
 
       const { error: itemsError } = await supabase
@@ -139,7 +137,6 @@ export function Commande() {
     }
   }
 
-  // Group products by category
   const groupedProducts = products.reduce((acc, product) => {
     const categoryName = product.categories?.name || 'Sans catégorie'
     if (!acc[categoryName]) {
@@ -161,31 +158,28 @@ export function Commande() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-900">Commander</h1>
 
-      {Object.entries(groupedProducts).map(([categoryName, categoryProducts]) => (
-        <div key={categoryName} className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-800">{categoryName}</h2>
+      {Object.entries(groupedProducts).map(([category, categoryProducts]) => (
+        <div key={category} className="space-y-4">
+          <h2 className="text-lg font-semibold text-gray-800">{category}</h2>
           
           <div className="space-y-2">
             {categoryProducts.map((product) => (
               <div key={product.id} className="card flex items-center justify-between">
-                <div className="flex items-center space-x-3 flex-1">
-                  {product.image_url && (
-                    <img
-                      src={product.image_url}
-                      alt={product.name}
-                      className="w-12 h-12 object-cover rounded-lg"
-                    />
+                <div className="flex-1">
+                  <h3 className="font-medium">{product.name}</h3>
+                  {product.description && (
+                    <p className="text-sm text-gray-500">{product.description}</p>
                   )}
-                  <div className="flex-1">
-                    <h3 className="font-medium">{product.name}</h3>
-                    {product.description && (
-                      <p className="text-sm text-gray-500">{product.description}</p>
-                    )}
-                    <p className="text-sm font-semibold text-primary-600">
-                      {product.price.toFixed(2)} €
-                    </p>
-                  </div>
+                  <p className="text-sm text-gray-600">{product.price.toFixed(2)} €</p>
                 </div>
+                
+                {product.image_url && (
+                  <img
+                    src={product.image_url}
+                    alt={product.name}
+                    className="w-16 h-16 object-cover rounded-lg mx-4"
+                  />
+                )}
                 
                 <div className="flex items-center space-x-3">
                   <button
@@ -223,12 +217,6 @@ export function Commande() {
             <ShoppingCart size={20} />
             <span>Valider ({getTotalAmount().toFixed(2)} €)</span>
           </button>
-        </div>
-      )}
-
-      {products.length === 0 && (
-        <div className="card text-center py-8">
-          <p className="text-gray-500">Aucun produit disponible pour le moment.</p>
         </div>
       )}
     </div>

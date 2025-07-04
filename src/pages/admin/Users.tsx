@@ -6,14 +6,14 @@ interface User {
   id: string
   email: string
   full_name: string
-  is_admin: boolean
+  role: string
   created_at: string
 }
 
 interface UserOrder {
   id: string
   total_amount: number
-  status: 'pending' | 'payment_notified' | 'paid'
+  status: 'pending' | 'payment_notified' | 'confirmed' | 'cancelled'
   created_at: string
 }
 
@@ -64,7 +64,7 @@ export function Users() {
     try {
       const { error } = await supabase
         .from('orders')
-        .update({ status: 'paid' })
+        .update({ status: 'confirmed' })
         .eq('id', orderId)
 
       if (error) throw error
@@ -111,7 +111,8 @@ export function Users() {
     switch (status) {
       case 'pending': return 'text-red-600'
       case 'payment_notified': return 'text-orange-600'
-      case 'paid': return 'text-green-600'
+      case 'confirmed': return 'text-green-600'
+      case 'cancelled': return 'text-gray-600'
       default: return 'text-gray-600'
     }
   }
@@ -120,7 +121,8 @@ export function Users() {
     switch (status) {
       case 'pending': return 'En attente'
       case 'payment_notified': return 'Paiement notifié'
-      case 'paid': return 'Payé'
+      case 'confirmed': return 'Confirmé'
+      case 'cancelled': return 'Annulé'
       default: return status
     }
   }
@@ -162,7 +164,7 @@ export function Users() {
             <div>
               <h3 className="font-semibold">{selectedUser.full_name}</h3>
               <p className="text-sm text-gray-600">{selectedUser.email}</p>
-              {selectedUser.is_admin && (
+              {selectedUser.role === 'admin' && (
                 <div className="flex items-center space-x-1 mt-1">
                   <Shield size={14} className="text-primary-500" />
                   <span className="text-xs text-primary-600">Admin</span>
@@ -278,7 +280,7 @@ export function Users() {
               </div>
               
               <div className="flex items-center space-x-2">
-                {user.is_admin && (
+                {user.role === 'admin' && (
                   <Shield size={16} className="text-primary-500" />
                 )}
                 <span className="text-gray-400">→</span>
