@@ -120,13 +120,19 @@ class MockDatabase {
       .filter(p => p.category_id === actualCategoryId)
       .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
     
+    console.log('Category products:', categoryProducts.map(p => ({ id: p.id, name: p.name, order: p.display_order })))
+    
     const productIndex = categoryProducts.findIndex(p => p.id === productId)
+    console.log('Product index:', productIndex, 'Total products:', categoryProducts.length)
+    
     if (productIndex === -1) throw new Error('Produit non trouvé')
     if (productIndex === 0) return // Déjà en première position
     
     // Échanger les display_order avec le produit précédent
     const currentProduct = categoryProducts[productIndex]
     const previousProduct = categoryProducts[productIndex - 1]
+    
+    console.log('Moving up:', currentProduct.name, 'order:', currentProduct.display_order, 'with:', previousProduct.name, 'order:', previousProduct.display_order)
     
     const tempOrder = currentProduct.display_order || 0
     currentProduct.display_order = previousProduct.display_order || 0
@@ -138,6 +144,8 @@ class MockDatabase {
     
     if (currentIndex !== -1) this.products[currentIndex] = currentProduct
     if (previousIndex !== -1) this.products[previousIndex] = previousProduct
+    
+    console.log('After move - Current:', this.products[currentIndex].display_order, 'Previous:', this.products[previousIndex].display_order)
   }
 
   async moveProductDown(productId: string, categoryId: string): Promise<void> {
@@ -151,13 +159,19 @@ class MockDatabase {
       .filter(p => p.category_id === actualCategoryId)
       .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
     
+    console.log('Category products:', categoryProducts.map(p => ({ id: p.id, name: p.name, order: p.display_order })))
+    
     const productIndex = categoryProducts.findIndex(p => p.id === productId)
+    console.log('Product index:', productIndex, 'Total products:', categoryProducts.length)
+    
     if (productIndex === -1) throw new Error('Produit non trouvé')
     if (productIndex === categoryProducts.length - 1) return // Déjà en dernière position
     
     // Échanger les display_order avec le produit suivant
     const currentProduct = categoryProducts[productIndex]
     const nextProduct = categoryProducts[productIndex + 1]
+    
+    console.log('Moving down:', currentProduct.name, 'order:', currentProduct.display_order, 'with:', nextProduct.name, 'order:', nextProduct.display_order)
     
     const tempOrder = currentProduct.display_order || 0
     currentProduct.display_order = nextProduct.display_order || 0
@@ -169,6 +183,8 @@ class MockDatabase {
     
     if (currentIndex !== -1) this.products[currentIndex] = currentProduct
     if (nextIndex !== -1) this.products[nextIndex] = nextProduct
+    
+    console.log('After move - Current:', this.products[currentIndex].display_order, 'Next:', this.products[nextIndex].display_order)
   }
   // CATEGORIES
   async getCategories(): Promise<Category[]> {

@@ -173,6 +173,11 @@ export function Products() {
       stock_variants: product.stock_variants || []
     })
     setIsCreatingProduct(true)
+    
+    // Scroll vers le haut du formulaire
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }, 100)
   }
 
   const handleDeleteProduct = async (productId: string) => {
@@ -210,6 +215,7 @@ export function Products() {
 
   const moveProductUp = async (productId: string, categoryId: string | null) => {
     try {
+      console.log('Moving product up:', productId, 'in category:', categoryId)
       await mockDatabase.moveProductUp(productId, categoryId || '')
       fetchProducts()
     } catch (error: any) {
@@ -220,6 +226,7 @@ export function Products() {
 
   const moveProductDown = async (productId: string, categoryId: string | null) => {
     try {
+      console.log('Moving product down:', productId, 'in category:', categoryId)
       await mockDatabase.moveProductDown(productId, categoryId || '')
       fetchProducts()
     } catch (error: any) {
