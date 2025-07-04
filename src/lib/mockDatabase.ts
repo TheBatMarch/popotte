@@ -117,6 +117,21 @@ class MockDatabase {
     return newCategory
   }
 
+  async updateCategory(id: string, data: Partial<Category>): Promise<Category> {
+    await this.delay()
+    const index = this.categories.findIndex(category => category.id === id)
+    if (index === -1) throw new Error('Catégorie non trouvée')
+    
+    this.categories[index] = { ...this.categories[index], ...data }
+    
+    // Mettre à jour le slug si le nom a changé
+    if (data.name) {
+      this.categories[index].slug = data.name.toLowerCase().replace(/\s+/g, '-')
+    }
+    
+    return this.categories[index]
+  }
+
   // ORDERS
   async getOrders(userId?: string): Promise<Order[]> {
     await this.delay()

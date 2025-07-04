@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Plus, Edit, Trash2, Save, X, FolderPlus } from 'lucide-react'
+import { Plus, Edit, Trash2, Save, X, FolderPlus, Check } from 'lucide-react'
 import { mockDatabase } from '../../lib/mockDatabase'
 import { ImageUpload } from '../../components/ImageUpload'
 import type { Product, Category } from '../../lib/mockData'
@@ -11,6 +11,8 @@ export function Products() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [isCreatingProduct, setIsCreatingProduct] = useState(false)
   const [isCreatingCategory, setIsCreatingCategory] = useState(false)
+  const [editingCategory, setEditingCategory] = useState<string | null>(null)
+  const [editingCategoryName, setEditingCategoryName] = useState('')
   const [productFormData, setProductFormData] = useState({
     name: '',
     description: '',
@@ -102,6 +104,29 @@ export function Products() {
     } catch (error: any) {
       alert('Erreur : ' + error.message)
     }
+  }
+
+  const handleEditCategory = (category: Category) => {
+    setEditingCategory(category.id)
+    setEditingCategoryName(category.name)
+  }
+
+  const handleSaveCategory = async (categoryId: string) => {
+    try {
+      await mockDatabase.updateCategory(categoryId, { name: editingCategoryName })
+      setEditingCategory(null)
+      setEditingCategoryName('')
+      fetchCategories()
+      fetchProducts() // Rafraîchir les produits pour mettre à jour les noms de catégories
+      alert('Catégorie modifiée !')
+    } catch (error: any) {
+      alert('Erreur : ' + error.message)
+    }
+  }
+
+  const handleCancelCategoryEdit = () => {
+    setEditingCategory(null)
+    setEditingCategoryName('')
   }
 
   const handleEditProduct = (product: Product) => {
@@ -382,8 +407,57 @@ export function Products() {
         ) : (
           Object.entries(groupedProducts).map(([categoryName, categoryProducts]) => (
             <div key={categoryName} className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <h2 className="text-lg font-semibold text-gray-800">{categoryName}</h2>
+              <div className="flex items-center space-x-2 group">
+                {editingCategory === categories.find(c => c.name === categoryName)?.id ? (
+                  <div className="flex items-center space-x-2 flex-1">
+                    <input
+                      type="text"
+                      value={editingCategoryName}
+                      onChange={(e) => setEditingCategoryName(e.target.value)}
+                      className="input text-lg font-semibold flex-1"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          const categoryId = categories.find(c => c.name === categoryName)?.id
+                          if (categoryId) handleSaveCategory(categoryId)
+                        }
+                        if (e.key === 'Escape') {
+                          handleCancelCategoryEdit()
+                        }
+                      }}
+                      autoFocus
+                    />
+                    <button
+                      onClick={() => {
+                        const categoryId = categories.find(c => c.name === categoryName)?.id
+                        if (categoryId) handleSaveCategory(categoryId)
+                      }}
+                      className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                    >
+                      <Check size={16} />
+                    </button>
+                    <button
+                      onClick={handleCancelCategoryEdit}
+                      className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <h2 className="text-lg font-semibold text-gray-800 flex-1">{categoryName}</h2>
+                    {categoryName !== 'Sans catégorie' && (
+                      <button
+                        onClick={() => {
+                          const category = categories.find(c => c.name === categoryName)
+                          if (category) handleEditCategory(category)
+                        }}
+                        className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors opacity-0 group-hover:opacity-100"
+                      >
+                        <Edit size={14} />
+                      </button>
+                    )}
+                  </>
+                )}
                 <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">
                   {categoryProducts.length} produit{categoryProducts.length > 1 ? 's' : ''}
                 </span>
