@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Shield } from 'lucide-react'
+import { Shield, Search } from 'lucide-react'
 import { mockDatabase } from '../../lib/mockDatabase'
 import type { User, Order } from '../../lib/mockData'
 
@@ -10,6 +10,8 @@ export function Users() {
   const [userDebts, setUserDebts] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [addDebtAmount, setAddDebtAmount] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [debtFilter, setDebtFilter] = useState<'all' | 'debt' | 'clear'>('all')
 
   useEffect(() => {
     fetchUsers()
@@ -112,6 +114,24 @@ export function Users() {
       default: return status
     }
   }
+
+  // Filtrer et rechercher les utilisateurs
+  const filteredUsers = users.filter(user => {
+    // Filtre par nom
+    const matchesSearch = user.full_name.toLowerCase().includes(searchTerm.toLowerCase())
+    
+    // Filtre par statut de dette
+    const userDebt = userDebts[user.id] || 0
+    let matchesDebtFilter = true
+    
+    if (debtFilter === 'debt') {
+      matchesDebtFilter = userDebt > 0
+    } else if (debtFilter === 'clear') {
+      matchesDebtFilter = userDebt === 0
+    }
+    
+    return matchesSearch && matchesDebtFilter
+  })
 
   if (loading) {
     return (
@@ -225,20 +245,71 @@ export function Users() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold">Gestion des utilisateurs</h2>
-      
       <div className="card bg-blue-50 border-blue-200">
         <p className="text-sm text-blue-700">
           💡 Données de démonstration - Gestion factice des utilisateurs.
         </p>
       </div>
       
-      {users.length === 0 ? (
+      {/* Barre de recherche et filtres */}
+      <div className="space-y-4">
+        {/* Recherche */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+          <input
+            type="text"
+            placeholder="Rechercher un utilisateur..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="input pl-10"
+          />
+        </div>
+        
+        {/* Filtres par statut de dette */}
+        <div className="flex space-x-2">
+          <button
+            onClick={() => setDebtFilter('all')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              debtFilter === 'all' 
+                ? 'bg-primary-500 text-white' 
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            Tous ({users.length})
+          </button>
+          <button
+            onClick={() => setDebtFilter('debt')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              debtFilter === 'debt' 
+                ? 'bg-red-500 text-white' 
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            Endettés ({users.filter(u => (userDebts[u.id] || 0) > 0).length})
+          </button>
+          <button
+            onClick={() => setDebtFilter('clear')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              debtFilter === 'clear' 
+                ? 'bg-green-500 text-white' 
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            À jour ({users.filter(u => (userDebts[u.id] || 0) === 0).length})
+          </button>
+        </div>
+      </div>
+      
+      {filteredUsers.length === 0 ? (
         <div className="card text-center py-8">
-          <p className="text-gray-500">Aucun utilisateur trouvé.</p>
+          <p className="text-gray-500">
+            {searchTerm || debtFilter !== 'all' 
+              ? 'Aucun utilisateur ne correspond aux critères de recherche.' 
+              : 'Aucun utilisateur trouvé.'}
+          </p>
         </div>
       ) : (
-        users.map((user) => {
+        filteredUsers.map((user) => {
           const userDebt = userDebts[user.id] || 0
           return (
             <div
@@ -251,17 +322,41 @@ export function Users() {
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  {userDebt > 0 ? (
-                    <span className="text-sm font-medium text-red-600">
-                      Dette: {userDebt.toFixed(2)} €
+                  <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                    <span className="text-primary-600 font-semibold">
+                      {user.full_name.charAt(0).toUpperCase()}
                     </span>
-                  ) : (
-                    <span className="text-sm text-green-600">
-                      Compte à jour
-                    </span>
-                  )}
+                  </div>
+                  <div>
+                    <h3 className="font-medium">{user.full_name}</h3>
+                    <div className="flex items-center space-x-2">
+                      {userDebt > 0 ? (
+                        <span className="text-sm font-medium text-red-600">
+                          Dette: {userDebt.toFixed(2)} €
+                        </span>
+                      ) : (
+                        <span className="text-sm text-green-600">
+                          Compte à jour
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div>
+                
+                <div className="flex items-center space-x-2">
+                  {user.role === 'admin' && (
+                    <Shield size={16} className="text-primary-500" />
+                  )}
+                  <span className="text-gray-400">→</span>
+                </div>
+              </div>
+            </div>
+          )
+        })
+      )}
+    </div>
+  )
+}
                   <h3 className="font-medium">{user.full_name}</h3>
                   <p className="text-sm text-gray-600">{user.email}</p>
                   <p className="text-xs text-gray-500">
