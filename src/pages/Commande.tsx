@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Plus, Minus, ShoppingCart } from 'lucide-react'
+import { Plus, Minus, ShoppingCart, Package } from 'lucide-react'
 import { mockDatabase } from '../lib/mockDatabase'
 import { useAuth } from '../contexts/AuthContext'
 import type { Product } from '../lib/mockData'
@@ -7,17 +7,20 @@ import type { Product } from '../lib/mockData'
 interface CartItem {
   product: Product
   quantity: number
+  selectedVariant?: string
 }
 
 export function Commande() {
   const { user } = useAuth()
   const [products, setProducts] = useState<Product[]>([])
+  const [categories, setCategories] = useState<any[]>([])
   const [cart, setCart] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     fetchProducts()
+    fetchCategories()
   }, [])
 
   const fetchProducts = async () => {
@@ -31,37 +34,83 @@ export function Commande() {
     }
   }
 
-  const addToCart = (product: Product) => {
+  const fetchCategories = async () => {
+    try {
+      const data = await mockDatabase.getCategories()
+      setCategories(data)
+    } catch (error) {
+      console.error('Error fetching categories:', error)
+    }
+  }
+
+  const addToCart = (product: Product, variant?: string) => {
     setCart(prev => {
-      const existingItem = prev.find(item => item.product.id === product.id)
+      const existingItem = prev.find(item => 
+        item.product.id === product.id && item.selectedVariant === variant
+      )
+      
       if (existingItem) {
+        // Vérifier le stock disponible
+        const availableStock = getAvailableStock(product, variant)
+        if (availableStock !== null && existingItem.quantity >= availableStock) {
+          alert(`Stock insuffisant. Disponible: ${availableStock}`)
+          return prev
+        }
+        
         return prev.map(item =>
-          item.product.id === product.id
+          item.product.id === product.id && item.selectedVariant === variant
             ? { ...item, quantity: item.quantity + 1 }
             : item
         )
       }
-      return [...prev, { product, quantity: 1 }]
+      
+      // Vérifier le stock pour un nouvel article
+      const availableStock = getAvailableStock(product, variant)
+      if (availableStock !== null && availableStock <= 0) {
+        alert('Produit en rupture de stock')
+        return prev
+      }
+      
+      return [...prev, { product, quantity: 1, selectedVariant: variant }]
     })
   }
 
-  const removeFromCart = (productId: string) => {
+  const removeFromCart = (productId: string, variant?: string) => {
     setCart(prev => {
-      const existingItem = prev.find(item => item.product.id === productId)
+      const existingItem = prev.find(item => 
+        item.product.id === productId && item.selectedVariant === variant
+      )
+      
       if (existingItem && existingItem.quantity > 1) {
         return prev.map(item =>
-          item.product.id === productId
+          item.product.id === productId && item.selectedVariant === variant
             ? { ...item, quantity: item.quantity - 1 }
             : item
         )
       }
-      return prev.filter(item => item.product.id !== productId)
+      
+      return prev.filter(item => 
+        !(item.product.id === productId && item.selectedVariant === variant)
+      )
     })
   }
 
-  const getQuantity = (productId: string) => {
-    const item = cart.find(item => item.product.id === productId)
+  const getQuantity = (productId: string, variant?: string) => {
+    const item = cart.find(item => 
+      item.product.id === productId && item.selectedVariant === variant
+    )
     return item ? item.quantity : 0
+  }
+
+  const getAvailableStock = (product: Product, variant?: string) => {
+    if (!product.stock_enabled) return null
+    
+    if (product.stock_variants && variant) {
+      const variantStock = product.stock_variants.find(v => v.name === variant)
+      return variantStock ? variantStock.quantity : 0
+    }
+    
+    return product.stock_quantity || 0
   }
 
   const getTotalAmount = () => {
@@ -83,7 +132,8 @@ export function Commande() {
       const items = cart.map(item => ({
         product_id: item.product.id,
         quantity: item.quantity,
-        unit_price: item.product.price
+        unit_price: item.product.price,
+        variant: item.selectedVariant
       }))
 
       await mockDatabase.createOrder({
@@ -101,21 +151,6 @@ export function Commande() {
       setSubmitting(false)
     }
   }
-
-  // Récupérer les catégories pour l'ordre d'affichage
-  const [categories, setCategories] = useState<any[]>([])
-  
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const data = await mockDatabase.getCategories()
-        setCategories(data)
-      } catch (error) {
-        console.error('Error fetching categories:', error)
-      }
-    }
-    fetchCategories()
-  }, [])
 
   // Grouper les produits par catégorie dans l'ordre défini
   const groupedProducts = categories.reduce((acc, category) => {
@@ -159,56 +194,161 @@ export function Commande() {
 
       {Object.entries(groupedProducts).map(([category, categoryProducts]) => (
         <div key={category} className="space-y-4">
-          <div className="bg-gray-50 p-3 rounded-lg">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-800">{category}</h2>
-              <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">
-                {categoryProducts.length} produit{categoryProducts.length > 1 ? 's' : ''}
-              </span>
-            </div>
-          </div>
+          <h2 className="text-lg font-semibold text-gray-800">{category}</h2>
           
-          <div className="space-y-3 ml-4">
+          <div className="space-y-3">
             {categoryProducts.map((product) => (
-              <div key={product.id} className="card flex items-center justify-between">
-                <div className="flex space-x-3 flex-1">
-                  {product.image_url && (
-                    <img
-                      src={product.image_url}
-                      alt={product.name}
-                      className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
-                    />
-                  )}
-                  
-                  <div className="flex-1">
-                    <h3 className="font-medium">{product.name}</h3>
-                    {product.description && (
-                      <p className="text-sm text-gray-500">{product.description}</p>
-                    )}
-                    <p className="text-lg font-semibold text-primary-600">{product.price.toFixed(2)} €</p>
+              <div key={product.id} className="w-full">
+                {/* Produit avec gestion de stock par variantes */}
+                {product.stock_enabled && product.stock_variants && product.stock_variants.length > 0 ? (
+                  <div className="card">
+                    <div className="flex space-x-3 mb-4">
+                      {product.image_url && (
+                        <img
+                          src={product.image_url}
+                          alt={product.name}
+                          className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
+                        />
+                      )}
+                      
+                      <div className="flex-1">
+                        <h3 className="font-medium text-lg">{product.name}</h3>
+                        {product.description && (
+                          <p className="text-sm text-gray-500 mb-2">{product.description}</p>
+                        )}
+                        <p className="text-lg font-semibold text-primary-600">{product.price.toFixed(2)} €</p>
+                      </div>
+                    </div>
+                    
+                    {/* Variantes avec stock */}
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium text-gray-700 flex items-center space-x-1">
+                        <Package size={16} />
+                        <span>Choisir une taille/variante :</span>
+                      </h4>
+                      
+                      {product.stock_variants.map((variant) => {
+                        const quantity = getQuantity(product.id, variant.name)
+                        const isOutOfStock = variant.quantity <= 0
+                        const isLowStock = variant.quantity <= 3 && variant.quantity > 0
+                        
+                        return (
+                          <div key={variant.name} className={`flex items-center justify-between p-3 border rounded-lg ${
+                            isOutOfStock ? 'bg-gray-50 border-gray-200' : 'border-gray-300'
+                          }`}>
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2">
+                                <span className="font-medium">{variant.name}</span>
+                                {isOutOfStock ? (
+                                  <span className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
+                                    Rupture de stock
+                                  </span>
+                                ) : isLowStock ? (
+                                  <span className="px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded-full">
+                                    Plus que {variant.quantity}
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
+                                    {variant.quantity} disponibles
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center space-x-3">
+                              <button
+                                onClick={() => removeFromCart(product.id, variant.name)}
+                                className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors disabled:opacity-50"
+                                disabled={quantity === 0 || isOutOfStock}
+                              >
+                                <Minus size={16} />
+                              </button>
+                              
+                              <span className="w-8 text-center font-medium">
+                                {quantity}
+                              </span>
+                              
+                              <button
+                                onClick={() => addToCart(product, variant.name)}
+                                className="w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 transition-colors disabled:opacity-50"
+                                disabled={isOutOfStock || quantity >= variant.quantity}
+                              >
+                                <Plus size={16} />
+                              </button>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
-                </div>
-                
-                <div className="flex items-center space-x-3">
-                  <button
-                    onClick={() => removeFromCart(product.id)}
-                    className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors"
-                    disabled={getQuantity(product.id) === 0}
-                  >
-                    <Minus size={16} />
-                  </button>
-                  
-                  <span className="w-8 text-center font-medium">
-                    {getQuantity(product.id)}
-                  </span>
-                  
-                  <button
-                    onClick={() => addToCart(product)}
-                    className="w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 transition-colors"
-                  >
-                    <Plus size={16} />
-                  </button>
-                </div>
+                ) : (
+                  /* Produit standard (avec ou sans stock simple) */
+                  <div className="card flex items-center justify-between w-full">
+                    <div className="flex space-x-3 flex-1">
+                      {product.image_url && (
+                        <img
+                          src={product.image_url}
+                          alt={product.name}
+                          className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                        />
+                      )}
+                      
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <h3 className="font-medium">{product.name}</h3>
+                          {product.stock_enabled && (
+                            <>
+                              {product.stock_quantity === 0 ? (
+                                <span className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
+                                  Rupture de stock
+                                </span>
+                              ) : product.stock_quantity && product.stock_quantity <= 3 ? (
+                                <span className="px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded-full">
+                                  Plus que {product.stock_quantity}
+                                </span>
+                              ) : (
+                                <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full flex items-center space-x-1">
+                                  <Package size={12} />
+                                  <span>{product.stock_quantity} en stock</span>
+                                </span>
+                              )}
+                            </>
+                          )}
+                        </div>
+                        {product.description && (
+                          <p className="text-sm text-gray-500">{product.description}</p>
+                        )}
+                        <p className="text-lg font-semibold text-primary-600">{product.price.toFixed(2)} €</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3">
+                      <button
+                        onClick={() => removeFromCart(product.id)}
+                        className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors disabled:opacity-50"
+                        disabled={getQuantity(product.id) === 0}
+                      >
+                        <Minus size={16} />
+                      </button>
+                      
+                      <span className="w-8 text-center font-medium">
+                        {getQuantity(product.id)}
+                      </span>
+                      
+                      <button
+                        onClick={() => addToCart(product)}
+                        className="w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 transition-colors disabled:opacity-50"
+                        disabled={
+                          product.stock_enabled && 
+                          product.stock_quantity !== undefined && 
+                          (product.stock_quantity === 0 || getQuantity(product.id) >= product.stock_quantity)
+                        }
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

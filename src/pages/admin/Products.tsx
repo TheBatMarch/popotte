@@ -19,7 +19,10 @@ export function Products() {
     price: '',
     category_id: '',
     image_url: '',
-    is_available: true
+    is_available: true,
+    stock_enabled: false,
+    stock_quantity: '',
+    stock_variants: [] as Array<{ name: string; quantity: number }>
   })
   const [categoryFormData, setCategoryFormData] = useState({
     name: ''
@@ -60,7 +63,14 @@ export function Products() {
         price: parseFloat(productFormData.price),
         category_id: productFormData.category_id || null,
         image_url: productFormData.image_url || null,
-        is_available: productFormData.is_available
+        is_available: productFormData.is_available,
+        stock_enabled: productFormData.stock_enabled,
+        stock_quantity: productFormData.stock_enabled && !productFormData.stock_variants.length 
+          ? parseInt(productFormData.stock_quantity) || 0 
+          : undefined,
+        stock_variants: productFormData.stock_enabled && productFormData.stock_variants.length > 0 
+          ? productFormData.stock_variants 
+          : undefined
       }
 
       if (editingProduct) {
@@ -75,7 +85,10 @@ export function Products() {
         price: '',
         category_id: '',
         image_url: '',
-        is_available: true
+        is_available: true,
+        stock_enabled: false,
+        stock_quantity: '',
+        stock_variants: []
       })
       setEditingProduct(null)
       setIsCreatingProduct(false)
@@ -154,7 +167,10 @@ export function Products() {
       price: product.price.toString(),
       category_id: product.category_id || '',
       image_url: product.image_url || '',
-      is_available: product.is_available
+      is_available: product.is_available,
+      stock_enabled: product.stock_enabled,
+      stock_quantity: product.stock_quantity?.toString() || '',
+      stock_variants: product.stock_variants || []
     })
     setIsCreatingProduct(true)
   }
@@ -178,7 +194,10 @@ export function Products() {
       price: '',
       category_id: '',
       image_url: '',
-      is_available: true
+      is_available: true,
+      stock_enabled: false,
+      stock_quantity: '',
+      stock_variants: []
     })
     setEditingProduct(null)
     setIsCreatingProduct(false)
@@ -205,6 +224,24 @@ export function Products() {
     } catch (error: any) {
       alert('Erreur : ' + error.message)
     }
+  }
+
+  const addStockVariant = () => {
+    setProductFormData({
+      ...productFormData,
+      stock_variants: [...productFormData.stock_variants, { name: '', quantity: 0 }]
+    })
+  }
+
+  const updateStockVariant = (index: number, field: 'name' | 'quantity', value: string | number) => {
+    const updatedVariants = [...productFormData.stock_variants]
+    updatedVariants[index] = { ...updatedVariants[index], [field]: value }
+    setProductFormData({ ...productFormData, stock_variants: updatedVariants })
+  }
+
+  const removeStockVariant = (index: number) => {
+    const updatedVariants = productFormData.stock_variants.filter((_, i) => i !== index)
+    setProductFormData({ ...productFormData, stock_variants: updatedVariants })
   }
 
   // Grouper les produits par catégorie
@@ -407,6 +444,121 @@ export function Products() {
               </label>
             </div>
 
+            {/* Gestion du stock */}
+            <div className="space-y-4 border-t pt-4">
+              <div className="flex items-center">
+                <input
+                  id="stock_enabled"
+                  type="checkbox"
+                  checked={productFormData.stock_enabled}
+                  onChange={(e) => setProductFormData({ 
+                    ...productFormData, 
+                    stock_enabled: e.target.checked,
+                    stock_quantity: '',
+                    stock_variants: []
+                  })}
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                />
+                <label htmlFor="stock_enabled" className="ml-2 block text-sm text-gray-900">
+                  Activer la gestion de stock
+                </label>
+              </div>
+
+              {productFormData.stock_enabled && (
+                <div className="space-y-4 ml-6 p-4 bg-gray-50 rounded-lg">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Type de stock
+                    </label>
+                    <div className="space-y-2">
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="stockType"
+                          checked={productFormData.stock_variants.length === 0}
+                          onChange={() => setProductFormData({ ...productFormData, stock_variants: [] })}
+                          className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
+                        />
+                        <span className="ml-2 text-sm text-gray-900">Stock simple (quantité unique)</span>
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="stockType"
+                          checked={productFormData.stock_variants.length > 0}
+                          onChange={() => {
+                            if (productFormData.stock_variants.length === 0) {
+                              addStockVariant()
+                            }
+                          }}
+                          className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
+                        />
+                        <span className="ml-2 text-sm text-gray-900">Stock par taille/variante</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {productFormData.stock_variants.length === 0 ? (
+                    <div>
+                      <label htmlFor="stock_quantity" className="block text-sm font-medium text-gray-700">
+                        Quantité en stock
+                      </label>
+                      <input
+                        id="stock_quantity"
+                        type="number"
+                        min="0"
+                        value={productFormData.stock_quantity}
+                        onChange={(e) => setProductFormData({ ...productFormData, stock_quantity: e.target.value })}
+                        className="input mt-1"
+                        placeholder="Ex: 10"
+                      />
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Variantes et stock
+                        </label>
+                        <button
+                          type="button"
+                          onClick={addStockVariant}
+                          className="text-sm text-primary-600 hover:text-primary-700"
+                        >
+                          + Ajouter une variante
+                        </button>
+                      </div>
+                      
+                      {productFormData.stock_variants.map((variant, index) => (
+                        <div key={index} className="flex items-center space-x-2">
+                          <input
+                            type="text"
+                            value={variant.name}
+                            onChange={(e) => updateStockVariant(index, 'name', e.target.value)}
+                            className="input flex-1"
+                            placeholder="Ex: Taille M"
+                          />
+                          <input
+                            type="number"
+                            min="0"
+                            value={variant.quantity}
+                            onChange={(e) => updateStockVariant(index, 'quantity', parseInt(e.target.value) || 0)}
+                            className="input w-20"
+                            placeholder="Qté"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeStockVariant(index)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
             <div className="flex space-x-2">
               <button type="submit" className="btn-primary flex items-center space-x-2">
                 <Save size={20} />
@@ -550,6 +702,33 @@ export function Products() {
                           <div className="text-lg font-semibold text-primary-600">
                             {product.price.toFixed(2)} €
                           </div>
+                         
+                         {/* Affichage du stock */}
+                         {product.stock_enabled && (
+                           <div className="mt-2">
+                             {product.stock_variants && product.stock_variants.length > 0 ? (
+                               <div className="space-y-1">
+                                 <p className="text-xs font-medium text-gray-600">Stock par variante :</p>
+                                 {product.stock_variants.map((variant, index) => (
+                                   <div key={index} className="text-xs text-gray-500 flex justify-between">
+                                     <span>{variant.name}</span>
+                                     <span className={variant.quantity === 0 ? 'text-red-600 font-medium' : variant.quantity <= 3 ? 'text-orange-600 font-medium' : 'text-green-600'}>
+                                       {variant.quantity === 0 ? 'Rupture' : `${variant.quantity} dispo`}
+                                     </span>
+                                   </div>
+                                 ))}
+                               </div>
+                             ) : (
+                               <p className={`text-xs ${
+                                 product.stock_quantity === 0 ? 'text-red-600 font-medium' : 
+                                 (product.stock_quantity || 0) <= 3 ? 'text-orange-600 font-medium' : 
+                                 'text-green-600'
+                               }`}>
+                                 Stock: {product.stock_quantity === 0 ? 'Rupture' : `${product.stock_quantity} disponibles`}
+                               </p>
+                             )}
+                           </div>
+                         )}
                         </div>
                       </div>
                       

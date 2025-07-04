@@ -76,6 +76,9 @@ class MockDatabase {
       ...data,
       id: `prod-${Date.now()}`,
       display_order: data.display_order ?? maxOrder + 1,
+      stock_enabled: data.stock_enabled || false,
+      stock_quantity: data.stock_quantity,
+      stock_variants: data.stock_variants,
       categories: category ? { name: category.name } : undefined
     }
     this.products.push(newProduct)
@@ -180,6 +183,7 @@ class MockDatabase {
   }
 
   async createOrder(data: { user_id: string; total_amount: number; items: Array<{ product_id: string; quantity: number; unit_price: number }> }): Promise<Order> {
+  async createOrder(data: { user_id: string; total_amount: number; items: Array<{ product_id: string; quantity: number; unit_price: number; variant?: string }> }): Promise<Order> {
     await this.delay()
     
     const orderId = `order-${Date.now()}`
@@ -192,6 +196,7 @@ class MockDatabase {
         quantity: item.quantity,
         unit_price: item.unit_price,
         total_price: item.quantity * item.unit_price,
+        variant: item.variant,
         products: { name: product?.name || 'Produit inconnu' }
       }
     })
@@ -211,6 +216,11 @@ class MockDatabase {
     }
 
     this.orders.push(newOrder)
+    
+    // Réduire le stock après confirmation de commande (simulé ici pour la démo)
+    // En production, cela se ferait uniquement lors de la confirmation par l'admin
+    this.updateStock(data.items)
+    
     return newOrder
   }
 
@@ -232,6 +242,29 @@ class MockDatabase {
     
     this.orders[index] = updatedOrder
     return this.orders[index]
+  }
+
+  private updateStock(items: Array<{ product_id: string; quantity: number; variant?: string }>) {
+    items.forEach(item => {
+      const productIndex = this.products.findIndex(p => p.id === item.product_id)
+      if (productIndex === -1) return
+      
+      const product = this.products[productIndex]
+      if (!product.stock_enabled) return
+      
+      if (product.stock_variants && item.variant) {
+        // Réduire le stock de la variante
+        const variantIndex = product.stock_variants.findIndex(v => v.name === item.variant)
+        if (variantIndex !== -1) {
+          product.stock_variants[variantIndex].quantity = Math.max(0, product.stock_variants[variantIndex].quantity - item.quantity)
+        }
+      } else if (product.stock_quantity !== undefined) {
+        // Réduire le stock simple
+        product.stock_quantity = Math.max(0, product.stock_quantity - item.quantity)
+      }
+      
+      this.products[productIndex] = product
+    })
   }
 
   // USERS

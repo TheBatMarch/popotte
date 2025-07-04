@@ -35,6 +35,12 @@ export interface Product {
   image_url: string | null
   is_available: boolean
   display_order: number
+  stock_enabled: boolean
+  stock_quantity?: number
+  stock_variants?: Array<{
+    name: string
+    quantity: number
+  }>
   categories?: {
     name: string
   }
@@ -184,6 +190,7 @@ export const MOCK_PRODUCTS: Product[] = [
     image_url: 'https://images.pexels.com/photos/1552630/pexels-photo-1552630.jpeg',
     is_available: true,
     display_order: 0,
+    stock_enabled: false,
     categories: { name: 'BOISSONS' }
   },
   {
@@ -195,6 +202,7 @@ export const MOCK_PRODUCTS: Product[] = [
     image_url: 'https://images.pexels.com/photos/1552630/pexels-photo-1552630.jpeg',
     is_available: true,
     display_order: 1,
+    stock_enabled: false,
     categories: { name: 'BOISSONS' }
   },
   {
@@ -206,6 +214,7 @@ export const MOCK_PRODUCTS: Product[] = [
     image_url: 'https://images.pexels.com/photos/96974/pexels-photo-96974.jpeg',
     is_available: true,
     display_order: 2,
+    stock_enabled: false,
     categories: { name: 'BOISSONS' }
   },
   {
@@ -217,6 +226,7 @@ export const MOCK_PRODUCTS: Product[] = [
     image_url: 'https://images.pexels.com/photos/230477/pexels-photo-230477.jpeg',
     is_available: true,
     display_order: 3,
+    stock_enabled: false,
     categories: { name: 'BOISSONS' }
   },
 
@@ -230,6 +240,7 @@ export const MOCK_PRODUCTS: Product[] = [
     image_url: 'https://images.pexels.com/photos/1583884/pexels-photo-1583884.jpeg',
     is_available: true,
     display_order: 0,
+    stock_enabled: false,
     categories: { name: 'EN CAS SALE' }
   },
   {
@@ -241,6 +252,7 @@ export const MOCK_PRODUCTS: Product[] = [
     image_url: 'https://images.pexels.com/photos/4518843/pexels-photo-4518843.jpeg',
     is_available: true,
     display_order: 1,
+    stock_enabled: false,
     categories: { name: 'EN CAS SALE' }
   },
 
@@ -254,6 +266,7 @@ export const MOCK_PRODUCTS: Product[] = [
     image_url: 'https://images.pexels.com/photos/1126359/pexels-photo-1126359.jpeg',
     is_available: true,
     display_order: 0,
+    stock_enabled: false,
     categories: { name: 'EN CAS SUCRE' }
   },
   {
@@ -265,6 +278,7 @@ export const MOCK_PRODUCTS: Product[] = [
     image_url: 'https://images.pexels.com/photos/1126359/pexels-photo-1126359.jpeg',
     is_available: true,
     display_order: 1,
+    stock_enabled: false,
     categories: { name: 'EN CAS SUCRE' }
   },
 
@@ -278,6 +292,7 @@ export const MOCK_PRODUCTS: Product[] = [
     image_url: 'https://images.pexels.com/photos/4518843/pexels-photo-4518843.jpeg',
     is_available: true,
     display_order: 0,
+    stock_enabled: false,
     categories: { name: 'PLATS PRINCIPAUX' }
   },
   {
@@ -289,6 +304,7 @@ export const MOCK_PRODUCTS: Product[] = [
     image_url: 'https://images.pexels.com/photos/5949888/pexels-photo-5949888.jpeg',
     is_available: true,
     display_order: 1,
+    stock_enabled: false,
     categories: { name: 'PLATS PRINCIPAUX' }
   },
   {
@@ -300,6 +316,12 @@ export const MOCK_PRODUCTS: Product[] = [
     image_url: 'https://images.pexels.com/photos/4518843/pexels-photo-4518843.jpeg',
     is_available: true,
     display_order: 2,
+    stock_enabled: true,
+    stock_variants: [
+      { name: 'Taille S', quantity: 5 },
+      { name: 'Taille M', quantity: 3 },
+      { name: 'Taille L', quantity: 0 }
+    ],
     categories: { name: 'PLATS PRINCIPAUX' }
   },
 
@@ -313,6 +335,8 @@ export const MOCK_PRODUCTS: Product[] = [
     image_url: 'https://images.pexels.com/photos/539451/pexels-photo-539451.jpeg',
     is_available: true,
     display_order: 0,
+    stock_enabled: true,
+    stock_quantity: 8,
     categories: { name: 'ENTREES' }
   },
   {
@@ -324,6 +348,8 @@ export const MOCK_PRODUCTS: Product[] = [
     image_url: 'https://images.pexels.com/photos/1059905/pexels-photo-1059905.jpeg',
     is_available: true,
     display_order: 1,
+    stock_enabled: true,
+    stock_quantity: 2,
     categories: { name: 'ENTREES' }
   },
 
@@ -337,6 +363,8 @@ export const MOCK_PRODUCTS: Product[] = [
     image_url: 'https://images.pexels.com/photos/1126359/pexels-photo-1126359.jpeg',
     is_available: true,
     display_order: 0,
+    stock_enabled: true,
+    stock_quantity: 0,
     categories: { name: 'DESSERTS' }
   },
   {
@@ -348,6 +376,7 @@ export const MOCK_PRODUCTS: Product[] = [
     image_url: 'https://images.pexels.com/photos/1126359/pexels-photo-1126359.jpeg',
     is_available: true,
     display_order: 1,
+    stock_enabled: false,
     categories: { name: 'DESSERTS' }
   }
 ]
