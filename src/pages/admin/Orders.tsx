@@ -23,7 +23,10 @@ export function Orders() {
 
   const confirmPayment = async (orderId: string) => {
     try {
-      await mockDatabase.updateOrder(orderId, { status: 'confirmed' })
+      await mockDatabase.updateOrder(orderId, { 
+        status: 'confirmed',
+        confirmed_at: new Date().toISOString()
+      })
       
       fetchOrders()
       alert('Paiement confirmé !')
@@ -38,6 +41,16 @@ export function Orders() {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
+  const formatPaymentDate = (dateString: string | null) => {
+    if (!dateString) return ''
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'short',
       hour: '2-digit',
       minute: '2-digit'
     })
@@ -99,7 +112,14 @@ export function Orders() {
                 <div>
                   <h3 className="font-semibold">{order.profiles?.full_name}</h3>
                   <p className="text-sm text-gray-600">{order.profiles?.email}</p>
-                  <p className="text-xs text-gray-500">{formatDate(order.created_at)}</p>
+                  <p className="text-xs text-gray-500">
+                    Commande: {formatDate(order.created_at)}
+                  </p>
+                  {order.payment_initiated_at && (
+                    <p className="text-xs text-orange-600">
+                      Paiement notifié: {formatPaymentDate(order.payment_initiated_at)}
+                    </p>
+                  )}
                 </div>
                 <div className="text-right">
                   <div className="font-bold text-lg">{order.total_amount.toFixed(2)} €</div>
@@ -121,9 +141,9 @@ export function Orders() {
               {order.status === 'payment_notified' && (
                 <button
                   onClick={() => confirmPayment(order.id)}
-                  className="btn-primary text-sm"
+                  className="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-sm flex items-center space-x-2"
                 >
-                  Confirmer le paiement
+                  <span>✅ Confirmer le paiement</span>
                 </button>
               )}
             </div>

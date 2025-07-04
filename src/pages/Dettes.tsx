@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { CreditCard, ExternalLink } from 'lucide-react'
+import { CreditCard, ExternalLink, Bell } from 'lucide-react'
 import { mockDatabase } from '../lib/mockDatabase'
 import { useAuth } from '../contexts/AuthContext'
 import type { Order } from '../lib/mockData'
@@ -8,6 +8,7 @@ export function Dettes() {
   const { user } = useAuth()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const [paymentInitiated, setPaymentInitiated] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     if (user) {
@@ -28,12 +29,18 @@ export function Dettes() {
     }
   }
 
+  const initiatePayment = (orderId: string) => {
+    setPaymentInitiated(prev => ({ ...prev, [orderId]: true }))
+  }
+
   const notifyPayment = async (orderId: string) => {
     try {
       await mockDatabase.updateOrder(orderId, { 
-        status: 'payment_notified'
+        status: 'payment_notified',
+        payment_initiated_at: new Date().toISOString()
       })
       
+      setPaymentInitiated(prev => ({ ...prev, [orderId]: false }))
       fetchOrders()
       alert('Paiement notifié aux popottiers !')
     } catch (error) {
@@ -57,6 +64,7 @@ export function Dettes() {
   const confirmedOrders = orders.filter(order => order.status === 'confirmed')
 
   const pendingTotal = pendingOrders.reduce((sum, order) => sum + order.total_amount, 0)
+  const hasInitiatedPayments = Object.values(paymentInitiated).some(initiated => initiated)
 
   if (loading) {
     return (
@@ -125,6 +133,9 @@ export function Dettes() {
                   href="https://paypal.me/popotte"
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => {
+                    pendingOrders.forEach(order => initiatePayment(order.id))
+                  }}
                   className="w-full btn-primary flex items-center justify-center space-x-2"
                 >
                   <CreditCard size={20} />
@@ -132,14 +143,21 @@ export function Dettes() {
                   <ExternalLink size={16} />
                 </a>
                 
-                <button
-                  onClick={() => {
-                    pendingOrders.forEach(order => notifyPayment(order.id))
-                  }}
-                  className="w-full btn-secondary"
-                >
-                  Notifier mon paiement aux popottiers
-                </button>
+                {hasInitiatedPayments && (
+                  <button
+                    onClick={() => {
+                      pendingOrders.forEach(order => {
+                        if (paymentInitiated[order.id]) {
+                          notifyPayment(order.id)
+                        }
+                      })
+                    }}
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+                  >
+                    <Bell size={20} />
+                    <span>Notifier mon paiement aux popottiers</span>
+                  </button>
+                )}
               </div>
             </div>
           </>
@@ -149,10 +167,10 @@ export function Dettes() {
       {/* Paiements en attente de confirmation */}
       {notifiedOrders.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-orange-600">Paiements en attente de confirmation</h2>
+          <h2 className="text-lg font-semibold text-orange-600">Dettes en attente de confirmation</h2>
           
           {notifiedOrders.map((order) => (
-            <div key={order.id} className="card border-l-4 border-orange-500">
+            <div key={order.id} className="card border-l-4 border-orange-500 bg-orange-50">
               <div className="flex justify-between items-start mb-2">
                 <span className="text-sm text-gray-500">
                   {formatDate(order.created_at)}
@@ -171,7 +189,7 @@ export function Dettes() {
               </div>
               
               <div className="mt-2 text-sm text-orange-600 font-medium">
-                En attente de confirmation
+                ⏳ En attente de confirmation par les popottiers
               </div>
             </div>
           ))}
@@ -181,10 +199,10 @@ export function Dettes() {
       {/* Dettes réglées */}
       {confirmedOrders.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-green-600">Mes dettes réglées</h2>
+          <h2 className="text-lg font-semibold text-green-600">Dettes réglées</h2>
           
           {confirmedOrders.map((order) => (
-            <div key={order.id} className="card border-l-4 border-green-500">
+            <div key={order.id} className="card border-l-4 border-green-500 bg-green-50">
               <div className="flex justify-between items-start mb-2">
                 <span className="text-sm text-gray-500">
                   {formatDate(order.created_at)}
@@ -203,7 +221,7 @@ export function Dettes() {
               </div>
               
               <div className="mt-2 text-sm text-green-600 font-medium">
-                ✓ Confirmé
+                ✅ Paiement confirmé
               </div>
             </div>
           ))}
