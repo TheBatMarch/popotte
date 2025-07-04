@@ -37,26 +37,6 @@ export function Home() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-center mb-6">
-        <img 
-          src={logoUrl} 
-          alt="Popotte Association Logo" 
-          className="w-32 h-32 object-contain"
-        />
-      </div>
-      
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Popotte Association</h1>
-        {profile?.role === 'admin' && (
-          <Link
-            to="/admin"
-            className="flex items-center space-x-2 text-primary-500 hover:text-primary-600"
-          >
-            <Settings size={20} />
-            <span className="text-sm">Admin</span>
-          </Link>
-        )}
-      </div>
 
       <div className="card">
         <h2 className="text-lg font-semibold mb-2">Bienvenue !</h2>
@@ -71,7 +51,7 @@ export function Home() {
       </div>
 
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Actualités</h2>
+        <h2 className="text-xl font-semibold">Les nouveautés de la popotte</h2>
         
         {loading ? (
           <div className="flex justify-center py-8">

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Plus, Edit, Trash2, Save, X, FolderPlus, Check, ChevronUp, ChevronDown } from 'lucide-react'
+import { Plus, Edit, Trash2, Save, X, FolderPlus, Check, ChevronUp, ChevronDown, Settings } from 'lucide-react'
 import { mockDatabase } from '../../lib/mockDatabase'
 import { ImageUpload } from '../../components/ImageUpload'
 import type { Product, Category } from '../../lib/mockData'
@@ -22,8 +22,7 @@ export function Products() {
     is_available: true
   })
   const [categoryFormData, setCategoryFormData] = useState({
-    name: '',
-    slug: ''
+    name: ''
   })
 
   useEffect(() => {
@@ -92,12 +91,10 @@ export function Products() {
     
     try {
       await mockDatabase.createCategory({
-        name: categoryFormData.name,
-        slug: categoryFormData.slug || categoryFormData.name.toLowerCase().replace(/\s+/g, '-'),
-        display_order: categories.length
+        name: categoryFormData.name
       })
 
-      setCategoryFormData({ name: '', slug: '' })
+      setCategoryFormData({ name: '' })
       setIsCreatingCategory(false)
       fetchCategories()
       alert('Catégorie créée !')
@@ -188,8 +185,26 @@ export function Products() {
   }
 
   const handleCancelCategory = () => {
-    setCategoryFormData({ name: '', slug: '' })
+    setCategoryFormData({ name: '' })
     setIsCreatingCategory(false)
+  }
+
+  const moveProductUp = async (productId: string, categoryId: string) => {
+    try {
+      await mockDatabase.moveProductUp(productId, categoryId)
+      fetchProducts()
+    } catch (error: any) {
+      alert('Erreur : ' + error.message)
+    }
+  }
+
+  const moveProductDown = async (productId: string, categoryId: string) => {
+    try {
+      await mockDatabase.moveProductDown(productId, categoryId)
+      fetchProducts()
+    } catch (error: any) {
+      alert('Erreur : ' + error.message)
+    }
   }
 
   // Grouper les produits par catégorie
@@ -268,23 +283,9 @@ export function Products() {
                 id="categoryName"
                 type="text"
                 value={categoryFormData.name}
-                onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
+                onChange={(e) => setCategoryFormData({ name: e.target.value })}
                 className="input mt-1"
                 required
-              />
-            </div>
-
-            <div>
-              <label htmlFor="categorySlug" className="block text-sm font-medium text-gray-700">
-                Slug (optionnel)
-              </label>
-              <input
-                id="categorySlug"
-                type="text"
-                value={categoryFormData.slug}
-                onChange={(e) => setCategoryFormData({ ...categoryFormData, slug: e.target.value })}
-                className="input mt-1"
-                placeholder="sera généré automatiquement si vide"
               />
             </div>
 
@@ -553,6 +554,22 @@ export function Products() {
                       </div>
                       
                       <div className="flex space-x-2 ml-4">
+                        <div className="flex items-center space-x-1 border-r border-gray-200 pr-2">
+                          <button
+                            onClick={() => moveProductUp(product.id, product.category_id || '')}
+                            className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Monter le produit"
+                          >
+                            <ChevronUp size={16} />
+                          </button>
+                          <button
+                            onClick={() => moveProductDown(product.id, product.category_id || '')}
+                            className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Descendre le produit"
+                          >
+                            <ChevronDown size={16} />
+                          </button>
+                        </div>
                         <button
                           onClick={() => handleEditProduct(product)}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"

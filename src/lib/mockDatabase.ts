@@ -108,9 +108,12 @@ class MockDatabase {
 
   async createCategory(data: Omit<Category, 'id' | 'created_at'>): Promise<Category> {
     await this.delay()
+    const maxOrder = Math.max(...this.categories.map(c => c.display_order), -1)
     const newCategory: Category = {
       ...data,
       id: `cat-${Date.now()}`,
+      display_order: data.display_order ?? maxOrder + 1,
+      slug: data.slug || data.name.toLowerCase().replace(/\s+/g, '-'),
       created_at: new Date().toISOString()
     }
     this.categories.push(newCategory)
