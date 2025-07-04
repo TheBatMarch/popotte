@@ -238,29 +238,28 @@ export function Users() {
           <p className="text-gray-500">Aucun utilisateur trouvé.</p>
         </div>
       ) : (
-        users.map((user) => (
+        users.map((user) => {
           const userDebt = userDebts[user.id] || 0
-          <div
-            key={user.id}
-            className="card hover:bg-gray-50 cursor-pointer transition-colors"
-            onClick={() => {
-              setSelectedUser(user)
-              fetchUserOrders(user.id)
-            }}
-          >
-            <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      {userDebt > 0 ? (
-                        <span className="text-sm font-medium text-red-600">
-                          Dette: {userDebt.toFixed(2)} €
-                        </span>
-                      ) : (
-                        <span className="text-sm text-green-600">
-                          Compte à jour
-                        </span>
-                      )}
-                    </div>
-                  </span>
+          return (
+            <div
+              key={user.id}
+              className="card hover:bg-gray-50 cursor-pointer transition-colors"
+              onClick={() => {
+                setSelectedUser(user)
+                fetchUserOrders(user.id)
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  {userDebt > 0 ? (
+                    <span className="text-sm font-medium text-red-600">
+                      Dette: {userDebt.toFixed(2)} €
+                    </span>
+                  ) : (
+                    <span className="text-sm text-green-600">
+                      Compte à jour
+                    </span>
+                  )}
                 </div>
                 <div>
                   <h3 className="font-medium">{user.full_name}</h3>
@@ -269,18 +268,16 @@ export function Users() {
                     Inscrit le {formatDate(user.created_at)}
                   </p>
                 </div>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                {user.role === 'admin' && (
-                  <Shield size={16} className="text-primary-500" />
-                )}
-                <span className="text-gray-400">→</span>
+                <div className="flex items-center space-x-2">
+                  {user.role === 'admin' && (
+                    <Shield size={16} className="text-primary-500" />
+                  )}
+                  <span className="text-gray-400">→</span>
+                </div>
               </div>
             </div>
           )
-          </div>
-        ))
+        })
       )}
     </div>
   )
