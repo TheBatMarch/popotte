@@ -109,6 +109,61 @@ class MockDatabase {
     this.products.splice(index, 1)
   }
 
+  async moveProductUp(productId: string, categoryId: string): Promise<void> {
+    await this.delay()
+    
+    // Récupérer tous les produits de la même catégorie, triés par display_order
+    const categoryProducts = this.products
+      .filter(p => p.category_id === categoryId)
+      .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
+    
+    const productIndex = categoryProducts.findIndex(p => p.id === productId)
+    if (productIndex === -1) throw new Error('Produit non trouvé')
+    if (productIndex === 0) return // Déjà en première position
+    
+    // Échanger les display_order avec le produit précédent
+    const currentProduct = categoryProducts[productIndex]
+    const previousProduct = categoryProducts[productIndex - 1]
+    
+    const tempOrder = currentProduct.display_order || 0
+    currentProduct.display_order = previousProduct.display_order || 0
+    previousProduct.display_order = tempOrder
+    
+    // Mettre à jour dans la liste principale
+    const currentIndex = this.products.findIndex(p => p.id === productId)
+    const previousIndex = this.products.findIndex(p => p.id === previousProduct.id)
+    
+    if (currentIndex !== -1) this.products[currentIndex] = currentProduct
+    if (previousIndex !== -1) this.products[previousIndex] = previousProduct
+  }
+
+  async moveProductDown(productId: string, categoryId: string): Promise<void> {
+    await this.delay()
+    
+    // Récupérer tous les produits de la même catégorie, triés par display_order
+    const categoryProducts = this.products
+      .filter(p => p.category_id === categoryId)
+      .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
+    
+    const productIndex = categoryProducts.findIndex(p => p.id === productId)
+    if (productIndex === -1) throw new Error('Produit non trouvé')
+    if (productIndex === categoryProducts.length - 1) return // Déjà en dernière position
+    
+    // Échanger les display_order avec le produit suivant
+    const currentProduct = categoryProducts[productIndex]
+    const nextProduct = categoryProducts[productIndex + 1]
+    
+    const tempOrder = currentProduct.display_order || 0
+    currentProduct.display_order = nextProduct.display_order || 0
+    nextProduct.display_order = tempOrder
+    
+    // Mettre à jour dans la liste principale
+    const currentIndex = this.products.findIndex(p => p.id === productId)
+    const nextIndex = this.products.findIndex(p => p.id === nextProduct.id)
+    
+    if (currentIndex !== -1) this.products[currentIndex] = currentProduct
+    if (nextIndex !== -1) this.products[nextIndex] = nextProduct
+  }
   // CATEGORIES
   async getCategories(): Promise<Category[]> {
     await this.delay()
