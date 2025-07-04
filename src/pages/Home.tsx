@@ -8,8 +8,12 @@ interface NewsPost {
   id: string
   title: string
   content: string
+  excerpt: string | null
   image_url: string | null
+  author_id: string | null
+  published: boolean
   created_at: string
+  updated_at: string
 }
 
 export function Home() {
@@ -24,8 +28,9 @@ export function Home() {
   const fetchNewsPosts = async () => {
     try {
       const { data, error } = await supabase
-        .from('news_posts')
+        .from('news')
         .select('*')
+        .eq('published', true)
         .order('created_at', { ascending: false })
 
       if (error) throw error
@@ -49,7 +54,7 @@ export function Home() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Popotte Association</h1>
-        {profile?.is_admin && (
+        {profile?.role === 'admin' && (
           <Link
             to="/admin"
             className="flex items-center space-x-2 text-primary-500 hover:text-primary-600"
@@ -93,6 +98,9 @@ export function Home() {
                 <span>{formatDate(post.created_at)}</span>
               </div>
               <h3 className="text-lg font-semibold mb-2">{post.title}</h3>
+              {post.excerpt && (
+                <p className="text-gray-600 mb-2">{post.excerpt}</p>
+              )}
               <p className="text-gray-600 whitespace-pre-wrap">{post.content}</p>
             </article>
           ))

@@ -6,8 +6,12 @@ interface NewsPost {
   id: string
   title: string
   content: string
+  excerpt: string | null
   image_url: string | null
+  author_id: string | null
+  published: boolean
   created_at: string
+  updated_at: string
 }
 
 export function News() {
@@ -18,7 +22,9 @@ export function News() {
   const [formData, setFormData] = useState({
     title: '',
     content: '',
-    image_url: ''
+    excerpt: '',
+    image_url: '',
+    published: false
   })
 
   useEffect(() => {
@@ -28,7 +34,7 @@ export function News() {
   const fetchPosts = async () => {
     try {
       const { data, error } = await supabase
-        .from('news_posts')
+        .from('news')
         .select('*')
         .order('created_at', { ascending: false })
 
@@ -48,11 +54,13 @@ export function News() {
       if (editingPost) {
         // Update existing post
         const { error } = await supabase
-          .from('news_posts')
+          .from('news')
           .update({
             title: formData.title,
             content: formData.content,
-            image_url: formData.image_url || null
+            excerpt: formData.excerpt || null,
+            image_url: formData.image_url || null,
+            published: formData.published
           })
           .eq('id', editingPost.id)
 
@@ -60,18 +68,20 @@ export function News() {
       } else {
         // Create new post
         const { error } = await supabase
-          .from('news_posts')
+          .from('news')
           .insert({
             title: formData.title,
             content: formData.content,
-            image_url: formData.image_url || null
+            excerpt: formData.excerpt || null,
+            image_url: formData.image_url || null,
+            published: formData.published
           })
 
         if (error) throw error
       }
 
       // Reset form and refresh posts
-      setFormData({ title: '', content: '', image_url: '' })
+      setFormData({ title: '', content: '', excerpt: '', image_url: '', published: false })
       setEditingPost(null)
       setIsCreating(false)
       fetchPosts()
@@ -86,7 +96,9 @@ export function News() {
     setFormData({
       title: post.title,
       content: post.content,
-      image_url: post.image_url || ''
+      excerpt: post.excerpt || '',
+      image_url: post.image_url || '',
+      published: post.published
     })
     setIsCreating(true)
   }
@@ -96,7 +108,7 @@ export function News() {
 
     try {
       const { error } = await supabase
-        .from('news_posts')
+        .from('news')
         .delete()
         .eq('id', postId)
 
@@ -110,7 +122,7 @@ export function News() {
   }
 
   const handleCancel = () => {
-    setFormData({ title: '', content: '', image_url: '' })
+    setFormData({ title: '', content: '', excerpt: '', image_url: '', published: false })
     setEditingPost(null)
     setIsCreating(false)
   }
@@ -178,6 +190,19 @@ export function News() {
             </div>
 
             <div>
+              <label htmlFor="excerpt" className="block text-sm font-medium text-gray-700">
+                Extrait (optionnel)
+              </label>
+              <textarea
+                id="excerpt"
+                value={formData.excerpt}
+                onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+                className="input mt-1 h-20 resize-none"
+                placeholder="Résumé court de l'article..."
+              />
+            </div>
+
+            <div>
               <label htmlFor="image_url" className="block text-sm font-medium text-gray-700">
                 URL de l'image (optionnel)
               </label>
@@ -202,6 +227,19 @@ export function News() {
                 className="input mt-1 h-32 resize-none"
                 required
               />
+            </div>
+
+            <div className="flex items-center">
+              <input
+                id="published"
+                type="checkbox"
+                checked={formData.published}
+                onChange={(e) => setFormData({ ...formData, published: e.target.checked })}
+                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+              />
+              <label htmlFor="published" className="ml-2 block text-sm text-gray-900">
+                Publier l'article
+              </label>
             </div>
 
             <div className="flex space-x-2">
@@ -239,10 +277,22 @@ export function News() {
               
               <div className="flex justify-between items-start mb-2">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold mb-1">{post.title}</h3>
+                  <div className="flex items-center space-x-2 mb-1">
+                    <h3 className="text-lg font-semibold">{post.title}</h3>
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      post.published 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {post.published ? 'Publié' : 'Brouillon'}
+                    </span>
+                  </div>
                   <p className="text-sm text-gray-500 mb-2">
                     {formatDate(post.created_at)}
                   </p>
+                  {post.excerpt && (
+                    <p className="text-gray-600 mb-2 italic">{post.excerpt}</p>
+                  )}
                   <p className="text-gray-600 whitespace-pre-wrap">{post.content}</p>
                 </div>
                 

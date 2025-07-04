@@ -13,7 +13,7 @@ export type Database = {
           id: string
           email: string
           full_name: string
-          is_admin: boolean
+          role: string
           created_at: string
           updated_at: string
         }
@@ -21,7 +21,7 @@ export type Database = {
           id: string
           email: string
           full_name: string
-          is_admin?: boolean
+          role?: string
           created_at?: string
           updated_at?: string
         }
@@ -29,17 +29,20 @@ export type Database = {
           id?: string
           email?: string
           full_name?: string
-          is_admin?: boolean
+          role?: string
           created_at?: string
           updated_at?: string
         }
       }
-      news_posts: {
+      news: {
         Row: {
           id: string
           title: string
           content: string
+          excerpt: string | null
           image_url: string | null
+          author_id: string | null
+          published: boolean
           created_at: string
           updated_at: string
         }
@@ -47,7 +50,10 @@ export type Database = {
           id?: string
           title: string
           content: string
+          excerpt?: string | null
           image_url?: string | null
+          author_id?: string | null
+          published?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -55,33 +61,68 @@ export type Database = {
           id?: string
           title?: string
           content?: string
+          excerpt?: string | null
           image_url?: string | null
+          author_id?: string | null
+          published?: boolean
           created_at?: string
           updated_at?: string
+        }
+      }
+      categories: {
+        Row: {
+          id: string
+          name: string
+          slug: string
+          icon: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          slug: string
+          icon?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          slug?: string
+          icon?: string | null
+          created_at?: string
         }
       }
       products: {
         Row: {
           id: string
           name: string
+          description: string | null
           price: number
-          category: 'boissons' | 'sucreries' | 'sale'
+          category_id: string | null
+          image_url: string | null
+          is_available: boolean
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
           name: string
+          description?: string | null
           price: number
-          category: 'boissons' | 'sucreries' | 'sale'
+          category_id?: string | null
+          image_url?: string | null
+          is_available?: boolean
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
           name?: string
+          description?: string | null
           price?: number
-          category?: 'boissons' | 'sucreries' | 'sale'
+          category_id?: string | null
+          image_url?: string | null
+          is_available?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -91,7 +132,9 @@ export type Database = {
           id: string
           user_id: string
           total_amount: number
-          status: 'pending' | 'payment_notified' | 'paid'
+          status: string
+          payment_notified_at: string | null
+          confirmed_at: string | null
           created_at: string
           updated_at: string
         }
@@ -99,7 +142,9 @@ export type Database = {
           id?: string
           user_id: string
           total_amount: number
-          status?: 'pending' | 'payment_notified' | 'paid'
+          status?: string
+          payment_notified_at?: string | null
+          confirmed_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -107,7 +152,9 @@ export type Database = {
           id?: string
           user_id?: string
           total_amount?: number
-          status?: 'pending' | 'payment_notified' | 'paid'
+          status?: string
+          payment_notified_at?: string | null
+          confirmed_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -119,6 +166,7 @@ export type Database = {
           product_id: string
           quantity: number
           unit_price: number
+          total_price: number
           created_at: string
         }
         Insert: {
@@ -127,6 +175,7 @@ export type Database = {
           product_id: string
           quantity: number
           unit_price: number
+          total_price: number
           created_at?: string
         }
         Update: {
@@ -135,6 +184,7 @@ export type Database = {
           product_id?: string
           quantity?: number
           unit_price?: number
+          total_price?: number
           created_at?: string
         }
       }
