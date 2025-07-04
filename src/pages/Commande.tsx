@@ -413,7 +413,7 @@ export function Commande() {
                         <div className="flex items-center justify-between">
                           <p className="text-lg font-semibold text-primary-600">{product.price.toFixed(2)} €</p>
                           {product.stock_enabled && (
-                            <>
+                            <div className="ml-2">
                               {product.stock_quantity === 0 ? (
                                 <span className="text-xs text-red-600 font-medium">
                                   Rupture de stock
@@ -427,13 +427,13 @@ export function Commande() {
                                   {product.stock_quantity} en stock
                                 </span>
                               )}
-                            </>
+                            </div>
                           )}
                         </div>
                       </div>
                     </div>
                     
-                    <div className="flex items-start space-x-2 mt-2">
+                    <div className="flex items-center space-x-2 self-start">
                       <button
                         onClick={() => removeFromCart(product.id)}
                         className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors disabled:opacity-50"
@@ -442,7 +442,7 @@ export function Commande() {
                         <Minus size={14} />
                       </button>
                       
-                      <span className="w-6 text-center font-medium text-sm">
+                      <span className="w-6 text-center font-medium text-sm flex items-center justify-center">
                         {getQuantity(product.id)}
                       </span>
                       
