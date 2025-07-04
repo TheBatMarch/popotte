@@ -43,6 +43,7 @@ export function Products() {
 
   const fetchProducts = async () => {
     try {
+      console.log('🔍 Fetching products...')
       const { data, error } = await supabase
         .from('products')
         .select(`
@@ -56,6 +57,7 @@ export function Products() {
       console.log('Products data:', data, 'Error:', error)
 
       if (error) throw error
+      console.log('✅ Products loaded:', data?.length || 0)
       setProducts(data || [])
     } catch (error) {
       console.error('Error fetching products:', error)
@@ -66,12 +68,14 @@ export function Products() {
 
   const fetchCategories = async () => {
     try {
+      console.log('🔍 Fetching categories...')
       const { data, error } = await supabase
         .from('categories')
         .select('*')
         .order('name', { ascending: true })
 
       if (error) throw error
+      console.log('✅ Categories loaded:', data?.length || 0)
       setCategories(data || [])
     } catch (error) {
       console.error('Error fetching categories:', error)

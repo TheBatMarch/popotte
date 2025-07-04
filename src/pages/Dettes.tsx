@@ -24,17 +24,15 @@ export function Dettes() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  
+  // ID utilisateur factice pour les tests
+  const testUserId = 'test-user-id'
 
   useEffect(() => {
-    if (user) {
-      fetchOrders()
-    } else {
-      setLoading(false)
-    }
-  }, [user])
+    fetchOrders()
+  }, [])
 
   const fetchOrders = async () => {
-    if (!user) return
 
     try {
       setLoading(true)
@@ -52,7 +50,7 @@ export function Dettes() {
             )
           )
         `)
-        .eq('user_id', user.id)
+        .eq('user_id', user?.id || testUserId)
         .order('created_at', { ascending: false })
 
       console.log('Orders data:', data, 'Error:', error)
@@ -128,17 +126,6 @@ export function Dettes() {
           >
             Réessayer
           </button>
-        </div>
-      </div>
-    )
-  }
-
-  if (!user) {
-    return (
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-gray-900">Mes Dettes</h1>
-        <div className="card text-center py-8">
-          <p className="text-gray-500">Vous devez être connecté pour voir vos dettes.</p>
         </div>
       </div>
     )

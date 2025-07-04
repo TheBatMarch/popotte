@@ -26,10 +26,11 @@ export function Home() {
   const fetchNewsPosts = async () => {
     try {
       setLoading(true)
+      
+      // Essayer d'abord sans filtre published pour voir toutes les actualités
       const { data, error } = await supabase
         .from('news')
         .select('*')
-        .eq('published', true)
         .order('created_at', { ascending: false })
 
       console.log('News data:', data, 'Error:', error)

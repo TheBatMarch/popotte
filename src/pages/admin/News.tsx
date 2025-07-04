@@ -32,6 +32,7 @@ export function News() {
 
   const fetchPosts = async () => {
     try {
+      console.log('🔍 Fetching news posts...')
       const { data, error } = await supabase
         .from('news')
         .select('*')
@@ -40,6 +41,7 @@ export function News() {
       console.log('News data:', data, 'Error:', error)
 
       if (error) throw error
+      console.log('✅ News posts loaded:', data?.length || 0)
       setPosts(data || [])
     } catch (error) {
       console.error('Error fetching posts:', error)
