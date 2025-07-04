@@ -383,6 +383,48 @@ class SupabaseDatabase {
   async getUserOrders(userId: string): Promise<Order[]> {
     return this.getOrders(userId)
   }
+
+  // ADMIN FUNCTIONS
+  async createAdminUser(email: string, password: string, fullName: string): Promise<void> {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+          username: email.split('@')[0],
+          role: 'admin'
+        }
+      }
+    })
+    if (error) throw error
+  }
+
+  // STATISTICS
+  async getStatistics(): Promise<{
+    totalUsers: number
+    totalOrders: number
+    totalRevenue: number
+    pendingOrders: number
+  }> {
+    const [users, orders] = await Promise.all([
+      this.getUsers(),
+      this.getOrders()
+    ])
+
+    const totalRevenue = orders
+      .filter(order => order.status === 'confirmed')
+      .reduce((sum, order) => sum + order.total_amount, 0)
+
+    const pendingOrders = orders.filter(order => order.status === 'pending').length
+
+    return {
+      totalUsers: users.length,
+      totalOrders: orders.length,
+      totalRevenue,
+      pendingOrders
+    }
+  }
 }
 
 export const database = new SupabaseDatabase()

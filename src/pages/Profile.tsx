@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { Eye, EyeOff, Save, User, Lock } from 'lucide-react'
+import { Eye, EyeOff, Save, User, Lock, Shield } from 'lucide-react'
 
 export function Profile() {
   const { profile, updateProfile, changePassword } = useAuth()
@@ -72,12 +72,6 @@ export function Profile() {
 
   return (
     <div className="space-y-6">
-      <div className="card bg-blue-50 border-blue-200">
-        <p className="text-sm text-blue-700">
-          💡 Mode démonstration - Les modifications sont temporaires.
-        </p>
-      </div>
-
       {/* Informations personnelles */}
       <div className="space-y-4">
         <div className="flex items-center space-x-2 mb-4">
@@ -111,6 +105,27 @@ export function Profile() {
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   L'email ne peut pas être modifié
+                </p>
+              </div>
+              
+              <div>
+                <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+                  Rôle
+                </label>
+                <div className="mt-1 flex items-center space-x-2">
+                  <input
+                    id="role"
+                    type="text"
+                    value={profile?.role === 'admin' ? 'Administrateur' : 'Utilisateur'}
+                    disabled
+                    className="input bg-gray-50 cursor-not-allowed flex-1"
+                  />
+                  {profile?.role === 'admin' && (
+                    <Shield className="text-primary-500" size={20} />
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Le rôle ne peut pas être modifié
                 </p>
               </div>
 
