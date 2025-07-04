@@ -164,7 +164,7 @@ export function Commande() {
   }
 
   // Grouper les produits par catégorie dans l'ordre défini
-  let groupedProducts = categories.reduce((acc, category) => {
+  let groupedProducts: Record<string, Product[]> = categories.reduce((acc: Record<string, Product[]>, category) => {
     const categoryProducts = products
       .filter(p => p.category_id === category.id)
       .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
@@ -192,7 +192,7 @@ export function Commande() {
   } else if (searchTerm) {
     // Appliquer la recherche à toutes les catégories
     Object.keys(groupedProducts).forEach(categoryName => {
-      const filteredProducts = filterProducts(groupedProducts[categoryName])
+      const filteredProducts: Product[] = filterProducts(groupedProducts[categoryName])
       if (filteredProducts.length > 0) {
         groupedProducts[categoryName] = filteredProducts
       } else {

@@ -223,20 +223,24 @@ export function Products() {
     })
   }
 
-  const updateStockVariant = (index: number, field: 'name' | 'quantity', value: string | number) => {
+  const updateStockVariant = (index: number, field: 'name' | 'quantity', value: string | number): void => {
     const updatedVariants = [...productFormData.stock_variants]
-    updatedVariants[index] = { ...updatedVariants[index], [field]: value }
+    if (field === 'name') {
+      updatedVariants[index] = { ...updatedVariants[index], [field]: value as string }
+    } else {
+      updatedVariants[index] = { ...updatedVariants[index], [field]: value as number }
+    }
     setProductFormData({ ...productFormData, stock_variants: updatedVariants })
   }
 
-  const removeStockVariant = (index: number) => {
+  const removeStockVariant = (index: number): void => {
     const updatedVariants = productFormData.stock_variants.filter((_, i) => i !== index)
     setProductFormData({ ...productFormData, stock_variants: updatedVariants })
   }
 
   // Grouper les produits par catégorie
-  const groupedProducts = categories.reduce((acc, category) => {
-    const categoryProducts = products.filter(p => p.category_id === category.id)
+  const groupedProducts: Record<string, Product[]> = categories.reduce((acc: Record<string, Product[]>, category) => {
+    const categoryProducts: Product[] = products.filter(p => p.category_id === category.id)
     if (categoryProducts.length > 0) {
       acc[category.name] = categoryProducts
     }
@@ -244,7 +248,7 @@ export function Products() {
   }, {} as Record<string, Product[]>)
 
   // Ajouter les produits sans catégorie à la fin
-  const uncategorizedProducts = products
+  const uncategorizedProducts: Product[] = products
     .filter(p => !p.category_id)
     .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
   if (uncategorizedProducts.length > 0) {

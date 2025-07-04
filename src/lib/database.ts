@@ -348,7 +348,7 @@ class SupabaseDatabase {
       if (product.stock_variants && item.variant) {
         // Update variant stock
         const variants = product.stock_variants as Array<{ name: string; quantity: number }>
-        const updatedVariants = variants.map(v => 
+        const updatedVariants = variants.map((v: { name: string; quantity: number }) => 
           v.name === item.variant 
             ? { ...v, quantity: Math.max(0, v.quantity - item.quantity) }
             : v
