@@ -350,40 +350,40 @@ export function Commande() {
                               <div className="flex items-center space-x-2">
                                 <span className="font-medium">{variant.name}</span>
                                 {isOutOfStock ? (
-                                  <span className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
+                                  <span className="text-xs text-red-600 font-medium">
                                     Rupture de stock
                                   </span>
                                 ) : isLowStock ? (
-                                  <span className="px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded-full">
+                                  <span className="text-xs text-orange-600 font-medium">
                                     Plus que {variant.quantity}
                                   </span>
                                 ) : (
-                                  <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
+                                  <span className="text-xs text-green-600 font-medium">
                                     {variant.quantity} disponibles
                                   </span>
                                 )}
                               </div>
                             </div>
                             
-                            <div className="flex items-center space-x-3">
+                            <div className="flex items-center space-x-2">
                               <button
                                 onClick={() => removeFromCart(product.id, variant.name)}
-                                className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors disabled:opacity-50"
+                                className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors disabled:opacity-50"
                                 disabled={quantity === 0 || isOutOfStock}
                               >
-                                <Minus size={16} />
+                                <Minus size={14} />
                               </button>
                               
-                              <span className="w-8 text-center font-medium">
+                              <span className="w-6 text-center font-medium text-sm">
                                 {quantity}
                               </span>
                               
                               <button
                                 onClick={() => addToCart(product, variant.name)}
-                                className="w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 transition-colors disabled:opacity-50"
+                                className="w-7 h-7 rounded-full bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 transition-colors disabled:opacity-50"
                                 disabled={isOutOfStock || quantity >= variant.quantity}
                               >
-                                <Plus size={16} />
+                                <Plus size={14} />
                               </button>
                             </div>
                           </div>
@@ -406,55 +406,56 @@ export function Commande() {
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-1">
                           <h3 className="font-medium">{product.name}</h3>
+                        </div>
+                        {product.description && (
+                          <p className="text-sm text-gray-500">{product.description}</p>
+                        )}
+                        <div className="flex items-center justify-between">
+                          <p className="text-lg font-semibold text-primary-600">{product.price.toFixed(2)} €</p>
                           {product.stock_enabled && (
                             <>
                               {product.stock_quantity === 0 ? (
-                                <span className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
+                                <span className="text-xs text-red-600 font-medium">
                                   Rupture de stock
                                 </span>
                               ) : product.stock_quantity && product.stock_quantity <= 3 ? (
-                                <span className="px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded-full">
+                                <span className="text-xs text-orange-600 font-medium">
                                   Plus que {product.stock_quantity}
                                 </span>
                               ) : (
-                                <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full flex items-center space-x-1">
-                                  <Package size={12} />
-                                  <span>{product.stock_quantity} en stock</span>
+                                <span className="text-xs text-green-600 font-medium">
+                                  {product.stock_quantity} en stock
                                 </span>
                               )}
                             </>
                           )}
                         </div>
-                        {product.description && (
-                          <p className="text-sm text-gray-500">{product.description}</p>
-                        )}
-                        <p className="text-lg font-semibold text-primary-600">{product.price.toFixed(2)} €</p>
                       </div>
                     </div>
                     
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-start space-x-2 mt-2">
                       <button
                         onClick={() => removeFromCart(product.id)}
-                        className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors disabled:opacity-50"
+                        className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors disabled:opacity-50"
                         disabled={getQuantity(product.id) === 0}
                       >
-                        <Minus size={16} />
+                        <Minus size={14} />
                       </button>
                       
-                      <span className="w-8 text-center font-medium">
+                      <span className="w-6 text-center font-medium text-sm">
                         {getQuantity(product.id)}
                       </span>
                       
                       <button
                         onClick={() => addToCart(product)}
-                        className="w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 transition-colors disabled:opacity-50"
+                        className="w-7 h-7 rounded-full bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 transition-colors disabled:opacity-50"
                         disabled={
                           product.stock_enabled && 
                           product.stock_quantity !== undefined && 
                           (product.stock_quantity === 0 || getQuantity(product.id) >= product.stock_quantity)
                         }
                       >
-                        <Plus size={16} />
+                        <Plus size={14} />
                       </button>
                     </div>
                   </div>
