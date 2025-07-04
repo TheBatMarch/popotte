@@ -132,6 +132,36 @@ class MockDatabase {
     return this.categories[index]
   }
 
+  async moveCategoryUp(id: string): Promise<void> {
+    await this.delay()
+    const index = this.categories.findIndex(category => category.id === id)
+    if (index === -1) throw new Error('Catégorie non trouvée')
+    if (index === 0) return // Déjà en première position
+    
+    // Échanger avec la catégorie précédente
+    const temp = this.categories[index - 1].display_order
+    this.categories[index - 1].display_order = this.categories[index].display_order
+    this.categories[index].display_order = temp
+    
+    // Réorganiser le tableau
+    this.categories.sort((a, b) => a.display_order - b.display_order)
+  }
+
+  async moveCategoryDown(id: string): Promise<void> {
+    await this.delay()
+    const index = this.categories.findIndex(category => category.id === id)
+    if (index === -1) throw new Error('Catégorie non trouvée')
+    if (index === this.categories.length - 1) return // Déjà en dernière position
+    
+    // Échanger avec la catégorie suivante
+    const temp = this.categories[index + 1].display_order
+    this.categories[index + 1].display_order = this.categories[index].display_order
+    this.categories[index].display_order = temp
+    
+    // Réorganiser le tableau
+    this.categories.sort((a, b) => a.display_order - b.display_order)
+  }
+
   // ORDERS
   async getOrders(userId?: string): Promise<Order[]> {
     await this.delay()

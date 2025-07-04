@@ -102,14 +102,35 @@ export function Commande() {
     }
   }
 
-  const groupedProducts = products.reduce((acc, product) => {
-    const categoryName = product.categories?.name || 'Sans catégorie'
-    if (!acc[categoryName]) {
-      acc[categoryName] = []
+  // Récupérer les catégories pour l'ordre d'affichage
+  const [categories, setCategories] = useState<any[]>([])
+  
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await mockDatabase.getCategories()
+        setCategories(data)
+      } catch (error) {
+        console.error('Error fetching categories:', error)
+      }
     }
-    acc[categoryName].push(product)
+    fetchCategories()
+  }, [])
+
+  // Grouper les produits par catégorie dans l'ordre défini
+  const groupedProducts = categories.reduce((acc, category) => {
+    const categoryProducts = products.filter(p => p.category_id === category.id)
+    if (categoryProducts.length > 0) {
+      acc[category.name] = categoryProducts
+    }
     return acc
   }, {} as Record<string, Product[]>)
+
+  // Ajouter les produits sans catégorie à la fin
+  const uncategorizedProducts = products.filter(p => !p.category_id)
+  if (uncategorizedProducts.length > 0) {
+    groupedProducts['Sans catégorie'] = uncategorizedProducts
+  }
 
   if (loading) {
     return (
@@ -136,26 +157,35 @@ export function Commande() {
 
       {Object.entries(groupedProducts).map(([category, categoryProducts]) => (
         <div key={category} className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-800">{category}</h2>
+          <div className="bg-gray-50 p-3 rounded-lg">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-800">{category}</h2>
+              <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">
+                {categoryProducts.length} produit{categoryProducts.length > 1 ? 's' : ''}
+              </span>
+            </div>
+          </div>
           
-          <div className="space-y-2">
+          <div className="space-y-3 ml-4">
             {categoryProducts.map((product) => (
               <div key={product.id} className="card flex items-center justify-between">
-                <div className="flex-1">
-                  <h3 className="font-medium">{product.name}</h3>
-                  {product.description && (
-                    <p className="text-sm text-gray-500">{product.description}</p>
+                <div className="flex space-x-3 flex-1">
+                  {product.image_url && (
+                    <img
+                      src={product.image_url}
+                      alt={product.name}
+                      className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                    />
                   )}
-                  <p className="text-sm text-gray-600">{product.price.toFixed(2)} €</p>
+                  
+                  <div className="flex-1">
+                    <h3 className="font-medium">{product.name}</h3>
+                    {product.description && (
+                      <p className="text-sm text-gray-500">{product.description}</p>
+                    )}
+                    <p className="text-lg font-semibold text-primary-600">{product.price.toFixed(2)} €</p>
+                  </div>
                 </div>
-                
-                {product.image_url && (
-                  <img
-                    src={product.image_url}
-                    alt={product.name}
-                    className="w-16 h-16 object-cover rounded-lg mx-4"
-                  />
-                )}
                 
                 <div className="flex items-center space-x-3">
                   <button

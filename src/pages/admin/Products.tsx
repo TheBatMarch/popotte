@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Plus, Edit, Trash2, Save, X, FolderPlus, Check } from 'lucide-react'
+import { Plus, Edit, Trash2, Save, X, FolderPlus, Check, ChevronUp, ChevronDown } from 'lucide-react'
 import { mockDatabase } from '../../lib/mockDatabase'
 import { ImageUpload } from '../../components/ImageUpload'
 import type { Product, Category } from '../../lib/mockData'
@@ -129,6 +129,26 @@ export function Products() {
     setEditingCategoryName('')
   }
 
+  const moveCategoryUp = async (categoryId: string) => {
+    try {
+      await mockDatabase.moveCategoryUp(categoryId)
+      fetchCategories()
+      fetchProducts()
+    } catch (error: any) {
+      alert('Erreur : ' + error.message)
+    }
+  }
+
+  const moveCategoryDown = async (categoryId: string) => {
+    try {
+      await mockDatabase.moveCategoryDown(categoryId)
+      fetchCategories()
+      fetchProducts()
+    } catch (error: any) {
+      alert('Erreur : ' + error.message)
+    }
+  }
+
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product)
     setProductFormData({
@@ -173,14 +193,19 @@ export function Products() {
   }
 
   // Grouper les produits par catégorie
-  const groupedProducts = products.reduce((acc, product) => {
-    const categoryName = product.categories?.name || 'Sans catégorie'
-    if (!acc[categoryName]) {
-      acc[categoryName] = []
+  const groupedProducts = categories.reduce((acc, category) => {
+    const categoryProducts = products.filter(p => p.category_id === category.id)
+    if (categoryProducts.length > 0) {
+      acc[category.name] = categoryProducts
     }
-    acc[categoryName].push(product)
     return acc
   }, {} as Record<string, Product[]>)
+
+  // Ajouter les produits sans catégorie à la fin
+  const uncategorizedProducts = products.filter(p => !p.category_id)
+  if (uncategorizedProducts.length > 0) {
+    groupedProducts['Sans catégorie'] = uncategorizedProducts
+  }
 
   if (loading) {
     return (
@@ -407,7 +432,7 @@ export function Products() {
         ) : (
           Object.entries(groupedProducts).map(([categoryName, categoryProducts]) => (
             <div key={categoryName} className="space-y-4">
-              <div className="flex items-center space-x-2 group">
+              <div className="flex items-center space-x-2 group bg-gray-50 p-3 rounded-lg">
                 {editingCategory === categories.find(c => c.name === categoryName)?.id ? (
                   <div className="flex items-center space-x-2 flex-1">
                     <input
@@ -444,17 +469,48 @@ export function Products() {
                   </div>
                 ) : (
                   <>
-                    <h2 className="text-lg font-semibold text-gray-800 flex-1">{categoryName}</h2>
+                    <h2 
+                      className="text-lg font-semibold text-gray-800 flex-1 cursor-pointer hover:text-blue-600 transition-colors"
+                      onClick={() => {
+                        const category = categories.find(c => c.name === categoryName)
+                        if (category && categoryName !== 'Sans catégorie') handleEditCategory(category)
+                      }}
+                    >
+                      {categoryName}
+                    </h2>
                     {categoryName !== 'Sans catégorie' && (
-                      <button
-                        onClick={() => {
-                          const category = categories.find(c => c.name === categoryName)
-                          if (category) handleEditCategory(category)
-                        }}
-                        className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors opacity-0 group-hover:opacity-100"
-                      >
-                        <Edit size={14} />
-                      </button>
+                      <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => {
+                            const category = categories.find(c => c.name === categoryName)
+                            if (category) moveCategoryUp(category.id)
+                          }}
+                          className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                          title="Monter la catégorie"
+                        >
+                          <ChevronUp size={16} />
+                        </button>
+                        <button
+                          onClick={() => {
+                            const category = categories.find(c => c.name === categoryName)
+                            if (category) moveCategoryDown(category.id)
+                          }}
+                          className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                          title="Descendre la catégorie"
+                        >
+                          <ChevronDown size={16} />
+                        </button>
+                        <button
+                          onClick={() => {
+                            const category = categories.find(c => c.name === categoryName)
+                            if (category) handleEditCategory(category)
+                          }}
+                          className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                          title="Modifier la catégorie"
+                        >
+                          <Edit size={16} />
+                        </button>
+                      </div>
                     )}
                   </>
                 )}
@@ -463,7 +519,7 @@ export function Products() {
                 </span>
               </div>
               
-              <div className="grid gap-4">
+              <div className="space-y-3 ml-4">
                 {categoryProducts.map((product) => (
                   <div key={product.id} className="card">
                     <div className="flex justify-between items-start">
@@ -472,13 +528,13 @@ export function Products() {
                           <img
                             src={product.image_url}
                             alt={product.name}
-                            className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
+                            className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
                           />
                         )}
                         
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-2">
-                            <h3 className="text-lg font-semibold">{product.name}</h3>
+                            <h3 className="font-medium">{product.name}</h3>
                             {!product.is_available && (
                               <span className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
                                 Indisponible
