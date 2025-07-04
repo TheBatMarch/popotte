@@ -442,7 +442,7 @@ export function Commande() {
                         className="w-7 h-7 rounded-full bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 transition-colors disabled:opacity-50"
                         disabled={
                           product.stock_enabled && 
-                          product.stock_quantity !== undefined && 
+                          product.stock_quantity !== null && 
                           (product.stock_quantity === 0 || getQuantity(product.id) >= product.stock_quantity)
                         }
                       >
