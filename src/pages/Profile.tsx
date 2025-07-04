@@ -4,7 +4,6 @@ import { Eye, EyeOff, Save, User, Lock } from 'lucide-react'
 
 export function Profile() {
   const { profile, updateProfile, changePassword } = useAuth()
-  const [activeTab, setActiveTab] = useState<'profile' | 'password'>('profile')
   
   // États pour le profil
   const [fullName, setFullName] = useState(profile?.full_name || '')
@@ -79,34 +78,13 @@ export function Profile() {
         </p>
       </div>
 
-      {/* Onglets */}
-      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-        <button
-          onClick={() => setActiveTab('profile')}
-          className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${
-            activeTab === 'profile'
-              ? 'bg-white text-primary-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-800'
-          }`}
-        >
-          <User size={18} />
-          <span>Informations personnelles</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('password')}
-          className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${
-            activeTab === 'password'
-              ? 'bg-white text-primary-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-800'
-          }`}
-        >
-          <Lock size={18} />
-          <span>Mot de passe</span>
-        </button>
-      </div>
+      {/* Informations personnelles */}
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2 mb-4">
+          <User size={20} className="text-primary-600" />
+          <h2 className="text-lg font-semibold text-gray-800">Informations personnelles</h2>
+        </div>
 
-      {/* Contenu des onglets */}
-      {activeTab === 'profile' ? (
         <form onSubmit={handleProfileSubmit} className="space-y-4">
           {profileMessage && (
             <div className={`p-4 rounded-lg ${
@@ -174,10 +152,18 @@ export function Profile() {
             className="w-full btn-primary disabled:opacity-50 flex items-center justify-center space-x-2"
           >
             <Save size={18} />
-            <span>{profileLoading ? 'Mise à jour...' : 'Mettre à jour'}</span>
+            <span>{profileLoading ? 'Mise à jour...' : 'Mettre à jour les informations'}</span>
           </button>
         </form>
-      ) : (
+      </div>
+
+      {/* Changement de mot de passe */}
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2 mb-4">
+          <Lock size={20} className="text-primary-600" />
+          <h2 className="text-lg font-semibold text-gray-800">Changer le mot de passe</h2>
+        </div>
+
         <form onSubmit={handlePasswordSubmit} className="space-y-4">
           {passwordMessage && (
             <div className={`p-4 rounded-lg ${
@@ -287,7 +273,7 @@ export function Profile() {
             <span>{passwordLoading ? 'Modification...' : 'Modifier le mot de passe'}</span>
           </button>
         </form>
-      )}
+      </div>
     </div>
   )
 }
