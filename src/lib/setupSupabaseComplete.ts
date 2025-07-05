@@ -7,7 +7,7 @@ export async function setupSupabaseComplete() {
   try {
     // 1. Vérifier la connexion
     console.log('🔍 Test de connexion Supabase...')
-    const { error: testError } = await supabase
+    const { error: connectionTestError } = await supabase
       .from('_test_connection')
       .select('*')
       .limit(1)
@@ -19,14 +19,14 @@ export async function setupSupabaseComplete() {
     console.log('📝 Création de la fonction exec_sql...')
     
     // Essayer d'abord de créer la fonction directement
-    const { error: execTestError } = await supabase.rpc('exec_sql', {
+    const { error: execFunctionTestError } = await supabase.rpc('exec_sql', {
       sql: 'SELECT 1 as test'
     })
     
-    if (execTestError) {
+    if (execFunctionTestError) {
       console.log('📝 Fonction exec_sql n\'existe pas, création...')
       // Utiliser une requête SQL directe pour créer la fonction
-      const { error: createFuncError } = await supabase.rpc('exec', {
+      const { error: createFunctionError } = await supabase.rpc('exec', {
         sql: `
           CREATE OR REPLACE FUNCTION public.exec_sql(sql text)
           RETURNS json
@@ -53,20 +53,21 @@ export async function setupSupabaseComplete() {
         `
       })
       
-      if (createFuncError) {
+      if (createFunctionError) {
         console.log('⚠️ Impossible de créer exec_sql via rpc, tentative alternative...')
       }
     } else {
       console.log('✅ Fonction exec_sql déjà disponible')
     }
 
-    // 3. Appliquer la migration de correction finale
-    console.log('📝 Application de la migration de correction finale...')
-    const { error: finalMigrationError } = await supabase.rpc('exec_sql', {
+    // 3. Appliquer la migration finale avec toutes les consignes
+    console.log('📝 Application de la migration finale complète...')
+    const { error: completeMigrationError } = await supabase.rpc('exec_sql', {
       sql: `
-        -- Correction rapide : Ajouter contrainte UNIQUE sur news.title
+        -- Application de toutes les consignes détaillées
         DO $$
         BEGIN
+          -- Ajouter contrainte UNIQUE sur news.title
           IF NOT EXISTS (
             SELECT 1 FROM information_schema.table_constraints 
             WHERE constraint_name = 'news_title_unique' 
@@ -74,21 +75,30 @@ export async function setupSupabaseComplete() {
           ) THEN
             ALTER TABLE news ADD CONSTRAINT news_title_unique UNIQUE (title);
           END IF;
+          
+          -- Ajouter contrainte UNIQUE sur products.name
+          IF NOT EXISTS (
+            SELECT 1 FROM information_schema.table_constraints 
+            WHERE constraint_name = 'products_name_unique' 
+            AND table_name = 'products'
+          ) THEN
+            ALTER TABLE products ADD CONSTRAINT products_name_unique UNIQUE (name);
+          END IF;
         END $$;
       `
     })
     
-    if (finalMigrationError) {
-      console.log('⚠️ Erreur migration finale:', finalMigrationError)
+    if (completeMigrationError) {
+      console.log('⚠️ Erreur migration complète:', completeMigrationError)
     } else {
-      console.log('✅ Migration finale appliquée')
+      console.log('✅ Migration complète appliquée')
     }
 
     // 4. Insérer les données de base
     console.log('📦 Insertion des données de base...')
     
     // Insérer les catégories
-    const { error: categoriesInsertError } = await supabase
+    const { error: categoriesDataError } = await supabase
       .from('categories')
       .upsert([
         { name: 'BOISSONS', slug: 'boissons', display_order: 1 },
@@ -99,24 +109,24 @@ export async function setupSupabaseComplete() {
         { name: 'DESSERTS', slug: 'desserts', display_order: 6 }
       ], { onConflict: 'name' })
 
-    if (categoriesInsertError) {
-      console.log('⚠️ Erreur insertion catégories:', categoriesInsertError)
+    if (categoriesDataError) {
+      console.log('⚠️ Erreur insertion catégories:', categoriesDataError)
     } else {
       console.log('✅ Catégories insérées avec succès')
     }
 
     // Récupérer les IDs des catégories
-    const { data: categoriesDataResult } = await supabase
+    const { data: categoriesListResult } = await supabase
       .from('categories')
       .select('id, slug')
 
-    const categoryMap = categoriesDataResult?.reduce((acc, cat) => {
+    const categoryMap = categoriesListResult?.reduce((acc, cat) => {
       acc[cat.slug] = cat.id
       return acc
     }, {} as Record<string, string>) || {}
 
     // Insérer les produits
-    const { error: productsInsertError } = await supabase
+    const { error: productsDataError } = await supabase
       .from('products')
       .upsert([
         // BOISSONS
@@ -290,14 +300,14 @@ export async function setupSupabaseComplete() {
         }
       ], { onConflict: 'name' })
 
-    if (productsInsertError) {
-      console.log('⚠️ Erreur insertion produits:', productsInsertError)
+    if (productsDataError) {
+      console.log('⚠️ Erreur insertion produits:', productsDataError)
     } else {
       console.log('✅ Produits insérés avec succès')
     }
 
     // Insérer les actualités
-    const { error: newsInsertError } = await supabase
+    const { error: newsDataError } = await supabase
       .from('news')
       .upsert([
         {
@@ -349,33 +359,33 @@ Merci de votre compréhension !`,
         }
       ], { onConflict: 'title' })
 
-    if (newsInsertError) {
-      console.log('⚠️ Erreur insertion actualités:', newsInsertError)
+    if (newsDataError) {
+      console.log('⚠️ Erreur insertion actualités:', newsDataError)
     } else {
       console.log('✅ Actualités insérées avec succès')
     }
 
-    console.log('🎉 Configuration Supabase terminée avec succès !')
+    console.log('🎉 Configuration Supabase terminée avec toutes les consignes appliquées !')
     
     // Vérifier le contenu final
-    const { data: categoriesFinalCheck } = await supabase.from('categories').select('*')
-    const { data: productsFinalCheck } = await supabase.from('products').select('*')
-    const { data: newsFinalCheck } = await supabase.from('news').select('*')
+    const { data: categoriesVerification } = await supabase.from('categories').select('*')
+    const { data: productsVerification } = await supabase.from('products').select('*')
+    const { data: newsVerification } = await supabase.from('news').select('*')
     
     console.log('📊 Vérification finale du contenu :')
-    console.log(`✅ Catégories : ${categoriesFinalCheck?.length || 0}`)
-    console.log(`✅ Produits : ${productsFinalCheck?.length || 0}`)
-    console.log(`✅ Actualités : ${newsFinalCheck?.length || 0}`)
+    console.log(`✅ Catégories : ${categoriesVerification?.length || 0}`)
+    console.log(`✅ Produits : ${productsVerification?.length || 0}`)
+    console.log(`✅ Actualités : ${newsVerification?.length || 0}`)
     
     return {
       success: true,
-      categories: categoriesFinalCheck?.length || 0,
-      products: productsFinalCheck?.length || 0,
-      news: newsFinalCheck?.length || 0
+      categories: categoriesVerification?.length || 0,
+      products: productsVerification?.length || 0,
+      news: newsVerification?.length || 0
     }
     
   } catch (error) {
-    console.error('❌ Erreur lors de la configuration complète :', error)
+    console.error('❌ Erreur lors de la configuration avec consignes appliquées :', error)
     return { success: false, error }
   }
 }
