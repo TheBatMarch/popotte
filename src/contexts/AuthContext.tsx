@@ -9,7 +9,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<void>
   signOut: () => Promise<void>
   updateProfile: (updates: Partial<User>) => Promise<void>
-  changePassword: (currentPassword: string, newPassword: string) => Promise<void>
+  changePassword: (_currentPassword: string, _newPassword: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -30,13 +30,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Initialiser les données par défaut
     localDB.initializeData()
     
-    // Récupérer l'utilisateur connecté
-    const currentUser = localDB.getCurrentUser()
-    setUser(currentUser)
+    // Créer et connecter automatiquement l'utilisateur admin
+    const adminUser = {
+      id: 'admin-1',
+      email: 'admin@popotte.fr',
+      full_name: 'Administrateur Popotte',
+      username: 'admin',
+      role: 'admin' as const,
+      created_at: new Date().toISOString()
+    }
+    
+    localDB.setCurrentUser(adminUser)
+    setUser(adminUser)
     setLoading(false)
   }, [])
 
   const signIn = async (email: string, password: string) => {
+    // Fonction maintenue pour compatibilité mais non utilisée
     try {
       const user = localDB.signIn(email, password)
       setUser(user)
@@ -46,6 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signUp = async (email: string, password: string, fullName: string) => {
+    // Fonction maintenue pour compatibilité mais non utilisée
     try {
       const user = localDB.signUp(email, password, fullName)
       setUser(user)
@@ -55,6 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
+    // Fonction maintenue pour compatibilité mais non utilisée
     localDB.signOut()
     setUser(null)
   }
@@ -71,9 +83,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const changePassword = async (_currentPassword: string, newPassword: string) => {
+  const changePassword = async (_currentPassword: string, _newPassword: string) => {
     // Pour la démo, on simule juste le changement de mot de passe
-    // En production, il faudrait vérifier l'ancien mot de passe
     return Promise.resolve()
   }
 

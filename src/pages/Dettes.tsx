@@ -84,6 +84,20 @@ export function Dettes() {
         <h1 className="text-2xl font-bold text-gray-900">Mes Dettes</h1>
       </div>
 
+      {/* Message d'information pour l'admin */}
+      <div className="card bg-blue-50 border-blue-200">
+        <div className="flex items-center space-x-2 mb-2">
+          <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+            <span className="text-white text-xs font-bold">i</span>
+          </div>
+          <h3 className="font-semibold text-blue-900">Mode Administrateur</h3>
+        </div>
+        <p className="text-sm text-blue-700">
+          Vous êtes connecté en tant qu'administrateur. Cette page simule l'interface utilisateur pour les dettes.
+          Vous pouvez créer des commandes depuis la page "Commande" pour tester le système.
+        </p>
+      </div>
+
       {/* Dettes non réglées */}
       <div className="space-y-4">
         <h2 className="text-lg font-semibold text-red-600">🔴 Dettes non réglées</h2>
@@ -91,6 +105,9 @@ export function Dettes() {
         {pendingOrders.length === 0 ? (
           <div className="card text-center py-8">
             <p className="text-gray-500">Aucune dette en attente.</p>
+            <p className="text-sm text-gray-400 mt-2">
+              Créez une commande depuis la page "Commande" pour tester le système.
+            </p>
           </div>
         ) : (
           <>
@@ -124,17 +141,14 @@ export function Dettes() {
               </div>
               
               <div className="space-y-3">
-                <a
-                  href="https://paypal.me/popotte"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
                   onClick={handlePaymentClick}
                   className="w-full btn-primary flex items-center justify-center space-x-2"
                 >
                   <CreditCard size={20} />
-                  <span>Régler mes dettes</span>
+                  <span>Simuler le paiement</span>
                   <ExternalLink size={16} />
-                </a>
+                </button>
                 
                 {paymentInitiated && (
                   <button
@@ -142,7 +156,7 @@ export function Dettes() {
                     className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
                   >
                     <Bell size={20} />
-                    <span>Notifier mon paiement aux popottiers</span>
+                    <span>Notifier le paiement aux popottiers</span>
                   </button>
                 )}
               </div>

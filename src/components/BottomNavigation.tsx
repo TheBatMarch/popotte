@@ -1,22 +1,14 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Home, ClipboardList, CreditCard, Settings } from 'lucide-react'
-import { useAuth } from '../contexts/AuthContext'
 
 export function BottomNavigation() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { user } = useAuth()
 
   const isActive = (path: string) => location.pathname === path
 
   const handleNavigation = (path: string) => {
-    if (path === '/' || user) {
-      // Page d'accueil accessible à tous, ou utilisateur connecté
-      navigate(path)
-    } else {
-      // Utilisateur non connecté essayant d'accéder à une page protégée
-      navigate('/auth', { state: { from: { pathname: path } } })
-    }
+    navigate(path)
   }
 
   return (
@@ -53,13 +45,13 @@ export function BottomNavigation() {
         </button>
         
         <button
-          onClick={() => handleNavigation('/parametres')}
+          onClick={() => handleNavigation('/admin')}
           className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
-            isActive('/parametres') ? 'text-primary-500' : 'text-gray-500 hover:text-gray-700'
+            location.pathname.startsWith('/admin') ? 'text-primary-500' : 'text-gray-500 hover:text-gray-700'
           }`}
         >
           <Settings size={24} />
-          <span className="text-xs mt-1">Paramètres</span>
+          <span className="text-xs mt-1">Admin</span>
         </button>
       </div>
     </nav>
