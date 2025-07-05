@@ -7,7 +7,7 @@ export async function setupSupabaseComplete() {
   try {
     // 1. Vérifier la connexion
     console.log('🔍 Test de connexion Supabase...')
-    const { data: testData, error: testError } = await supabase
+    const { error: testError } = await supabase
       .from('_test_connection')
       .select('*')
       .limit(1)
@@ -19,14 +19,14 @@ export async function setupSupabaseComplete() {
     console.log('📝 Création de la fonction exec_sql...')
     
     // Essayer d'abord de créer la fonction directement
-    const { error: directExecError } = await supabase.rpc('exec_sql', {
+    const { error: execTestError } = await supabase.rpc('exec_sql', {
       sql: 'SELECT 1 as test'
     })
     
-    if (directExecError) {
+    if (execTestError) {
       console.log('📝 Fonction exec_sql n\'existe pas, création...')
       // Utiliser une requête SQL directe pour créer la fonction
-      const { error: createFunctionError } = await supabase.rpc('exec', {
+      const { error: createFuncError } = await supabase.rpc('exec', {
         sql: `
           CREATE OR REPLACE FUNCTION public.exec_sql(sql text)
           RETURNS json
@@ -53,450 +53,18 @@ export async function setupSupabaseComplete() {
         `
       })
       
-      if (createFunctionError) {
+      if (createFuncError) {
         console.log('⚠️ Impossible de créer exec_sql via rpc, tentative alternative...')
-        // Essayer une approche alternative
-        const { error: altError } = await supabase.rpc('exec_sql', {
-          sql: `
-            CREATE OR REPLACE FUNCTION public.exec_sql(sql text)
-            RETURNS json
-            LANGUAGE plpgsql
-            SECURITY DEFINER
-            AS $$
-            DECLARE
-              result json;
-            BEGIN
-              EXECUTE sql INTO result;
-              RETURN result;
-            EXCEPTION
-              WHEN OTHERS THEN
-                RETURN json_build_object(
-                  'error', true,
-                  'message', SQLERRM,
-                  'detail', SQLSTATE
-                );
-            END;
-            $$;
-            
-            GRANT EXECUTE ON FUNCTION public.exec_sql(text) TO authenticated;
-            GRANT EXECUTE ON FUNCTION public.exec_sql(text) TO anon;
-          `
-        })
       }
     } else {
       console.log('✅ Fonction exec_sql déjà disponible')
     }
 
-    // 3. Exécuter la migration complète via exec_sql
-    console.log('📝 Exécution de la migration complète...')
-    const { error: migrationError } = await supabase.rpc('exec_sql', {
+    // 3. Appliquer la migration de correction finale
+    console.log('📝 Application de la migration de correction finale...')
+    const { error: finalMigrationError } = await supabase.rpc('exec_sql', {
       sql: `
-        -- Activer les extensions nécessaires
-        CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
-        -- =============================================
-        -- 1. TABLE PROFILES
-        -- =============================================
-
-        CREATE TABLE IF NOT EXISTS profiles (
-          id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-          email text UNIQUE NOT NULL,
-          full_name text NOT NULL,
-          username text UNIQUE NOT NULL,
-          role text NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
-          created_at timestamptz DEFAULT now(),
-          updated_at timestamptz DEFAULT now()
-        );
-
-        -- =============================================
-        -- 2. TABLE CATEGORIES
-        -- =============================================
-
-        CREATE TABLE IF NOT EXISTS categories (
-          id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-          name text UNIQUE NOT NULL,
-          slug text UNIQUE NOT NULL,
-          display_order integer NOT NULL DEFAULT 0,
-          created_at timestamptz DEFAULT now()
-        );
-
-        -- =============================================
-        -- 3. TABLE PRODUCTS
-        -- =============================================
-
-        CREATE TABLE IF NOT EXISTS products (
-          id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-          name text NOT NULL,
-          description text,
-          price decimal(10,2) NOT NULL,
-          category_id uuid REFERENCES categories(id) ON DELETE SET NULL,
-          image_url text,
-          is_available boolean DEFAULT true,
-          display_order integer DEFAULT 0,
-          stock_enabled boolean DEFAULT false,
-          stock_quantity integer,
-          stock_variants jsonb,
-          created_at timestamptz DEFAULT now(),
-          updated_at timestamptz DEFAULT now()
-        );
-
-        -- =============================================
-        -- 4. TABLE NEWS
-        -- =============================================
-
-        CREATE TABLE IF NOT EXISTS news (
-          id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-          title text NOT NULL,
-          content text NOT NULL,
-          excerpt text,
-          image_url text,
-          author_id uuid REFERENCES profiles(id) ON DELETE SET NULL,
-          published boolean DEFAULT false,
-          created_at timestamptz DEFAULT now(),
-          updated_at timestamptz DEFAULT now()
-        );
-
-        -- =============================================
-        -- 5. TABLE ORDERS
-        -- =============================================
-
-        CREATE TABLE IF NOT EXISTS orders (
-          id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-          user_id uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-          total_amount decimal(10,2) NOT NULL,
-          status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'payment_notified', 'confirmed', 'cancelled')),
-          payment_initiated_at timestamptz,
-          payment_notified_at timestamptz,
-          confirmed_at timestamptz,
-          created_at timestamptz DEFAULT now(),
-          updated_at timestamptz DEFAULT now()
-        );
-
-        -- =============================================
-        -- 6. TABLE ORDER_ITEMS
-        -- =============================================
-
-        CREATE TABLE IF NOT EXISTS order_items (
-          id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-          order_id uuid NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
-          product_id uuid NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-          quantity integer NOT NULL CHECK (quantity > 0),
-          unit_price decimal(10,2) NOT NULL,
-          total_price decimal(10,2) NOT NULL,
-          variant text,
-          created_at timestamptz DEFAULT now()
-        );
-
-        -- =============================================
-        -- 7. ACTIVATION RLS
-        -- =============================================
-
-        ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-        ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
-        ALTER TABLE products ENABLE ROW LEVEL SECURITY;
-        ALTER TABLE news ENABLE ROW LEVEL SECURITY;
-        ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
-        ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
-      `
-    })
-    
-    if (migrationError) {
-      console.log('⚠️ Erreur migration tables:', migrationError)
-      // Continuer malgré l'erreur car les tables peuvent déjà exister
-    } else {
-      console.log('✅ Tables créées avec succès')
-    }
-
-    // 4. Créer les politiques RLS
-    console.log('📝 Création des politiques RLS...')
-    const { error: rlsError } = await supabase.rpc('exec_sql', {
-      sql: `
-        -- =============================================
-        -- POLITIQUES RLS - PROFILES
-        -- =============================================
-
-        DROP POLICY IF EXISTS "Users can read own profile" ON profiles;
-        CREATE POLICY "Users can read own profile"
-          ON profiles FOR SELECT
-          TO authenticated
-          USING (auth.uid() = id);
-
-        DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
-        CREATE POLICY "Users can update own profile"
-          ON profiles FOR UPDATE
-          TO authenticated
-          USING (auth.uid() = id);
-
-        DROP POLICY IF EXISTS "Admins can read all profiles" ON profiles;
-        CREATE POLICY "Admins can read all profiles"
-          ON profiles FOR SELECT
-          TO authenticated
-          USING (
-            EXISTS (
-              SELECT 1 FROM profiles
-              WHERE id = auth.uid() AND role = 'admin'
-            )
-          );
-
-        -- =============================================
-        -- POLITIQUES RLS - CATEGORIES
-        -- =============================================
-
-        DROP POLICY IF EXISTS "Anyone can read categories" ON categories;
-        CREATE POLICY "Anyone can read categories"
-          ON categories FOR SELECT
-          TO authenticated
-          USING (true);
-
-        DROP POLICY IF EXISTS "Admins can manage categories" ON categories;
-        CREATE POLICY "Admins can manage categories"
-          ON categories FOR ALL
-          TO authenticated
-          USING (
-            EXISTS (
-              SELECT 1 FROM profiles
-              WHERE id = auth.uid() AND role = 'admin'
-            )
-          );
-
-        -- =============================================
-        -- POLITIQUES RLS - PRODUCTS
-        -- =============================================
-
-        DROP POLICY IF EXISTS "Anyone can read available products" ON products;
-        CREATE POLICY "Anyone can read available products"
-          ON products FOR SELECT
-          TO authenticated
-          USING (is_available = true);
-
-        DROP POLICY IF EXISTS "Admins can read all products" ON products;
-        CREATE POLICY "Admins can read all products"
-          ON products FOR SELECT
-          TO authenticated
-          USING (
-            EXISTS (
-              SELECT 1 FROM profiles
-              WHERE id = auth.uid() AND role = 'admin'
-            )
-          );
-
-        DROP POLICY IF EXISTS "Admins can manage products" ON products;
-        CREATE POLICY "Admins can manage products"
-          ON products FOR ALL
-          TO authenticated
-          USING (
-            EXISTS (
-              SELECT 1 FROM profiles
-              WHERE id = auth.uid() AND role = 'admin'
-            )
-          );
-
-        -- =============================================
-        -- POLITIQUES RLS - NEWS
-        -- =============================================
-
-        DROP POLICY IF EXISTS "Anyone can read published news" ON news;
-        CREATE POLICY "Anyone can read published news"
-          ON news FOR SELECT
-          TO authenticated
-          USING (published = true);
-
-        DROP POLICY IF EXISTS "Admins can read all news" ON news;
-        CREATE POLICY "Admins can read all news"
-          ON news FOR SELECT
-          TO authenticated
-          USING (
-            EXISTS (
-              SELECT 1 FROM profiles
-              WHERE id = auth.uid() AND role = 'admin'
-            )
-          );
-
-        DROP POLICY IF EXISTS "Admins can manage news" ON news;
-        CREATE POLICY "Admins can manage news"
-          ON news FOR ALL
-          TO authenticated
-          USING (
-            EXISTS (
-              SELECT 1 FROM profiles
-              WHERE id = auth.uid() AND role = 'admin'
-            )
-          );
-
-        -- =============================================
-        -- POLITIQUES RLS - ORDERS
-        -- =============================================
-
-        DROP POLICY IF EXISTS "Users can read own orders" ON orders;
-        CREATE POLICY "Users can read own orders"
-          ON orders FOR SELECT
-          TO authenticated
-          USING (user_id = auth.uid());
-
-        DROP POLICY IF EXISTS "Users can create own orders" ON orders;
-        CREATE POLICY "Users can create own orders"
-          ON orders FOR INSERT
-          TO authenticated
-          WITH CHECK (user_id = auth.uid());
-
-        DROP POLICY IF EXISTS "Users can update own orders" ON orders;
-        CREATE POLICY "Users can update own orders"
-          ON orders FOR UPDATE
-          TO authenticated
-          USING (user_id = auth.uid());
-
-        DROP POLICY IF EXISTS "Admins can read all orders" ON orders;
-        CREATE POLICY "Admins can read all orders"
-          ON orders FOR SELECT
-          TO authenticated
-          USING (
-            EXISTS (
-              SELECT 1 FROM profiles
-              WHERE id = auth.uid() AND role = 'admin'
-            )
-          );
-
-        DROP POLICY IF EXISTS "Admins can update all orders" ON orders;
-        CREATE POLICY "Admins can update all orders"
-          ON orders FOR UPDATE
-          TO authenticated
-          USING (
-            EXISTS (
-              SELECT 1 FROM profiles
-              WHERE id = auth.uid() AND role = 'admin'
-            )
-          );
-
-        -- =============================================
-        -- POLITIQUES RLS - ORDER_ITEMS
-        -- =============================================
-
-        DROP POLICY IF EXISTS "Users can read own order items" ON order_items;
-        CREATE POLICY "Users can read own order items"
-          ON order_items FOR SELECT
-          TO authenticated
-          USING (
-            EXISTS (
-              SELECT 1 FROM orders
-              WHERE orders.id = order_items.order_id AND orders.user_id = auth.uid()
-            )
-          );
-
-        DROP POLICY IF EXISTS "Users can create own order items" ON order_items;
-        CREATE POLICY "Users can create own order items"
-          ON order_items FOR INSERT
-          TO authenticated
-          WITH CHECK (
-            EXISTS (
-              SELECT 1 FROM orders
-              WHERE orders.id = order_items.order_id AND orders.user_id = auth.uid()
-            )
-          );
-
-        DROP POLICY IF EXISTS "Admins can read all order items" ON order_items;
-        CREATE POLICY "Admins can read all order items"
-          ON order_items FOR SELECT
-          TO authenticated
-          USING (
-            EXISTS (
-              SELECT 1 FROM profiles
-              WHERE id = auth.uid() AND role = 'admin'
-            )
-          );
-      `
-    })
-    
-    if (rlsError) {
-      console.log('⚠️ Erreur politiques RLS:', rlsError)
-    } else {
-      console.log('✅ Politiques RLS créées avec succès')
-    }
-
-    // 5. Créer les fonctions et triggers
-    console.log('📝 Création des fonctions et triggers...')
-    const { error: functionsError } = await supabase.rpc('exec_sql', {
-      sql: `
-        -- Fonction pour mettre à jour updated_at
-        CREATE OR REPLACE FUNCTION update_updated_at_column()
-        RETURNS TRIGGER AS $$
-        BEGIN
-          NEW.updated_at = now();
-          RETURN NEW;
-        END;
-        $$ LANGUAGE plpgsql;
-
-        -- Triggers pour updated_at
-        DROP TRIGGER IF EXISTS update_profiles_updated_at ON profiles;
-        CREATE TRIGGER update_profiles_updated_at
-          BEFORE UPDATE ON profiles
-          FOR EACH ROW
-          EXECUTE FUNCTION update_updated_at_column();
-
-        DROP TRIGGER IF EXISTS update_products_updated_at ON products;
-        CREATE TRIGGER update_products_updated_at
-          BEFORE UPDATE ON products
-          FOR EACH ROW
-          EXECUTE FUNCTION update_updated_at_column();
-
-        DROP TRIGGER IF EXISTS update_orders_updated_at ON orders;
-        CREATE TRIGGER update_orders_updated_at
-          BEFORE UPDATE ON orders
-          FOR EACH ROW
-          EXECUTE FUNCTION update_updated_at_column();
-
-        DROP TRIGGER IF EXISTS update_news_updated_at ON news;
-        CREATE TRIGGER update_news_updated_at
-          BEFORE UPDATE ON news
-          FOR EACH ROW
-          EXECUTE FUNCTION update_updated_at_column();
-
-        -- Fonction pour gérer les nouveaux utilisateurs
-        CREATE OR REPLACE FUNCTION handle_new_user()
-        RETURNS trigger AS $$
-        BEGIN
-          INSERT INTO profiles (id, email, full_name, username, role)
-          VALUES (
-            NEW.id,
-            NEW.email,
-            COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
-            COALESCE(NEW.raw_user_meta_data->>'username', split_part(NEW.email, '@', 1)),
-            COALESCE(NEW.raw_user_meta_data->>'role', 'user')
-          )
-          ON CONFLICT (id) DO UPDATE SET
-            email = EXCLUDED.email,
-            full_name = EXCLUDED.full_name,
-            username = EXCLUDED.username,
-            role = EXCLUDED.role,
-            updated_at = now();
-            
-          RETURN NEW;
-        END;
-        $$ LANGUAGE plpgsql SECURITY DEFINER;
-
-        -- Trigger pour nouveaux utilisateurs
-        DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-        CREATE TRIGGER on_auth_user_created
-          AFTER INSERT ON auth.users
-          FOR EACH ROW EXECUTE FUNCTION handle_new_user();
-      `
-    })
-    
-    if (functionsError) {
-      console.log('⚠️ Erreur fonctions:', functionsError)
-    } else {
-      console.log('✅ Fonctions et triggers créés avec succès')
-    }
-
-    // 6. Insérer les données de base
-    console.log('📦 Insertion des données de base...')
-    
-    // Exécuter d'abord la migration de correction des erreurs
-    console.log('🔧 Application de la migration de correction...')
-    const { error: migrationError } = await supabase.rpc('exec_sql', {
-      sql: `
-        -- Correction rapide des erreurs identifiées
-        
-        -- 1. Ajouter contrainte UNIQUE sur news.title si elle n'existe pas
+        -- Correction rapide : Ajouter contrainte UNIQUE sur news.title
         DO $$
         BEGIN
           IF NOT EXISTS (
@@ -507,27 +75,20 @@ export async function setupSupabaseComplete() {
             ALTER TABLE news ADD CONSTRAINT news_title_unique UNIQUE (title);
           END IF;
         END $$;
-        
-        -- 2. Politiques temporaires pour l'insertion
-        DROP POLICY IF EXISTS "Admins can manage categories" ON categories;
-        CREATE POLICY "Temp insert categories" ON categories FOR INSERT TO authenticated USING (true) WITH CHECK (true);
-        
-        DROP POLICY IF EXISTS "Admins can manage products" ON products;
-        CREATE POLICY "Temp insert products" ON products FOR INSERT TO authenticated USING (true) WITH CHECK (true);
-        
-        DROP POLICY IF EXISTS "Admins can manage news" ON news;
-        CREATE POLICY "Temp insert news" ON news FOR INSERT TO authenticated USING (true) WITH CHECK (true);
       `
     })
     
-    if (migrationError) {
-      console.log('⚠️ Erreur migration correction:', migrationError)
+    if (finalMigrationError) {
+      console.log('⚠️ Erreur migration finale:', finalMigrationError)
     } else {
-      console.log('✅ Migration de correction appliquée')
+      console.log('✅ Migration finale appliquée')
     }
+
+    // 4. Insérer les données de base
+    console.log('📦 Insertion des données de base...')
     
     // Insérer les catégories
-    const { error: categoriesError } = await supabase
+    const { error: categoriesInsertError } = await supabase
       .from('categories')
       .upsert([
         { name: 'BOISSONS', slug: 'boissons', display_order: 1 },
@@ -538,24 +99,24 @@ export async function setupSupabaseComplete() {
         { name: 'DESSERTS', slug: 'desserts', display_order: 6 }
       ], { onConflict: 'name' })
 
-    if (categoriesError) {
-      console.log('⚠️ Erreur insertion catégories:', categoriesError)
+    if (categoriesInsertError) {
+      console.log('⚠️ Erreur insertion catégories:', categoriesInsertError)
     } else {
       console.log('✅ Catégories insérées avec succès')
     }
 
     // Récupérer les IDs des catégories
-    const { data: categoriesData } = await supabase
+    const { data: categoriesDataResult } = await supabase
       .from('categories')
       .select('id, slug')
 
-    const categoryMap = categoriesData?.reduce((acc, cat) => {
+    const categoryMap = categoriesDataResult?.reduce((acc, cat) => {
       acc[cat.slug] = cat.id
       return acc
     }, {} as Record<string, string>) || {}
 
     // Insérer les produits
-    const { error: productsError } = await supabase
+    const { error: productsInsertError } = await supabase
       .from('products')
       .upsert([
         // BOISSONS
@@ -729,14 +290,14 @@ export async function setupSupabaseComplete() {
         }
       ], { onConflict: 'name' })
 
-    if (productsError) {
-      console.log('⚠️ Erreur insertion produits:', productsError)
+    if (productsInsertError) {
+      console.log('⚠️ Erreur insertion produits:', productsInsertError)
     } else {
       console.log('✅ Produits insérés avec succès')
     }
 
     // Insérer les actualités
-    const { error: newsError } = await supabase
+    const { error: newsInsertError } = await supabase
       .from('news')
       .upsert([
         {
@@ -788,54 +349,29 @@ Merci de votre compréhension !`,
         }
       ], { onConflict: 'title' })
 
-    if (newsError) {
-      console.log('⚠️ Erreur insertion actualités:', newsError)
+    if (newsInsertError) {
+      console.log('⚠️ Erreur insertion actualités:', newsInsertError)
     } else {
       console.log('✅ Actualités insérées avec succès')
-    }
-    
-    // Restaurer les politiques strictes après insertion
-    console.log('🔒 Restauration des politiques RLS strictes...')
-    const { error: restoreError } = await supabase.rpc('exec_sql', {
-      sql: `
-        -- Restaurer les politiques strictes
-        DROP POLICY IF EXISTS "Temp insert categories" ON categories;
-        CREATE POLICY "Admins can manage categories" ON categories FOR ALL TO authenticated 
-        USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
-        
-        DROP POLICY IF EXISTS "Temp insert products" ON products;
-        CREATE POLICY "Admins can manage products" ON products FOR ALL TO authenticated 
-        USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
-        
-        DROP POLICY IF EXISTS "Temp insert news" ON news;
-        CREATE POLICY "Admins can manage news" ON news FOR ALL TO authenticated 
-        USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
-      `
-    })
-    
-    if (restoreError) {
-      console.log('⚠️ Erreur restauration politiques:', restoreError)
-    } else {
-      console.log('✅ Politiques RLS strictes restaurées')
     }
 
     console.log('🎉 Configuration Supabase terminée avec succès !')
     
     // Vérifier le contenu final
-    const { data: categoriesCheck } = await supabase.from('categories').select('*')
-    const { data: productsCheck } = await supabase.from('products').select('*')
-    const { data: newsCheck } = await supabase.from('news').select('*')
+    const { data: categoriesFinalCheck } = await supabase.from('categories').select('*')
+    const { data: productsFinalCheck } = await supabase.from('products').select('*')
+    const { data: newsFinalCheck } = await supabase.from('news').select('*')
     
     console.log('📊 Vérification finale du contenu :')
-    console.log(`✅ Catégories : ${categoriesCheck?.length || 0}`)
-    console.log(`✅ Produits : ${productsCheck?.length || 0}`)
-    console.log(`✅ Actualités : ${newsCheck?.length || 0}`)
+    console.log(`✅ Catégories : ${categoriesFinalCheck?.length || 0}`)
+    console.log(`✅ Produits : ${productsFinalCheck?.length || 0}`)
+    console.log(`✅ Actualités : ${newsFinalCheck?.length || 0}`)
     
     return {
       success: true,
-      categories: categoriesCheck?.length || 0,
-      products: productsCheck?.length || 0,
-      news: newsCheck?.length || 0
+      categories: categoriesFinalCheck?.length || 0,
+      products: productsFinalCheck?.length || 0,
+      news: newsFinalCheck?.length || 0
     }
     
   } catch (error) {
