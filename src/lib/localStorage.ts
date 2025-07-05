@@ -548,31 +548,31 @@ const DEFAULT_USERS: User[] = [
 class LocalStorage {
   // Initialisation des données par défaut
   initializeData() {
-    if (!localStorage.getItem(STORAGE_KEYS.CATEGORIES)) {
-      localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(DEFAULT_CATEGORIES))
+    if (!window.localStorage.getItem(STORAGE_KEYS.CATEGORIES)) {
+      window.localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(DEFAULT_CATEGORIES))
     }
-    if (!localStorage.getItem(STORAGE_KEYS.PRODUCTS)) {
-      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(DEFAULT_PRODUCTS))
+    if (!window.localStorage.getItem(STORAGE_KEYS.PRODUCTS)) {
+      window.localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(DEFAULT_PRODUCTS))
     }
-    if (!localStorage.getItem(STORAGE_KEYS.NEWS)) {
-      localStorage.setItem(STORAGE_KEYS.NEWS, JSON.stringify(DEFAULT_NEWS))
+    if (!window.localStorage.getItem(STORAGE_KEYS.NEWS)) {
+      window.localStorage.setItem(STORAGE_KEYS.NEWS, JSON.stringify(DEFAULT_NEWS))
     }
-    if (!localStorage.getItem(STORAGE_KEYS.USERS)) {
-      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(DEFAULT_USERS))
+    if (!window.localStorage.getItem(STORAGE_KEYS.USERS)) {
+      window.localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(DEFAULT_USERS))
     }
-    if (!localStorage.getItem(STORAGE_KEYS.ORDERS)) {
-      localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify([]))
+    if (!window.localStorage.getItem(STORAGE_KEYS.ORDERS)) {
+      window.localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify([]))
     }
   }
 
   // Méthodes génériques
   private get<T>(key: string): T[] {
-    const data = localStorage.getItem(key)
+    const data = window.localStorage.getItem(key)
     return data ? JSON.parse(data) : []
   }
 
   private set<T>(key: string, data: T[]): void {
-    localStorage.setItem(key, JSON.stringify(data))
+    window.localStorage.setItem(key, JSON.stringify(data))
   }
 
   private generateId(): string {
@@ -859,15 +859,15 @@ class LocalStorage {
 
   // AUTHENTIFICATION
   getCurrentUser(): User | null {
-    const userData = localStorage.getItem(STORAGE_KEYS.CURRENT_USER)
+    const userData = window.localStorage.getItem(STORAGE_KEYS.CURRENT_USER)
     return userData ? JSON.parse(userData) : null
   }
 
   setCurrentUser(user: User | null): void {
     if (user) {
-      localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user))
+      window.localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user))
     } else {
-      localStorage.removeItem(STORAGE_KEYS.CURRENT_USER)
+      window.localStorage.removeItem(STORAGE_KEYS.CURRENT_USER)
     }
   }
 
