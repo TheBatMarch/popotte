@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Calendar } from 'lucide-react'
 import { database } from '../lib/database'
-import { setupSupabaseDirectly } from '../lib/directSupabaseSetup'
+import { setupSupabaseComplete } from '../lib/setupSupabaseComplete'
 import type { NewsPost } from '../lib/database'
 
 const logoUrl = '/ChatGPT Image 4 juil. 2025, 23_49_33.png'
@@ -19,8 +19,8 @@ export function Home() {
     try {
       setSeeding(true)
       
-      console.log('🚀 Configuration directe de Supabase...')
-      const result = await setupSupabaseDirectly()
+      console.log('🚀 Configuration complète de Supabase...')
+      const result = await setupSupabaseComplete()
       
       if (result.success) {
         console.log('✅ Configuration réussie !', result)
@@ -51,7 +51,7 @@ export function Home() {
     console.log('🔄 Nouvelle tentative d\'initialisation...')
     setSeeding(true)
     try {
-      const result = await setupSupabaseDirectly()
+      const result = await setupSupabaseComplete()
       if (result.success) {
         await fetchNewsPosts()
       }
@@ -128,7 +128,7 @@ export function Home() {
             onClick={retrySeeding}
             className="btn-primary mt-4"
           >
-            Configurer Supabase maintenant
+            Configurer la base de données
           </button>
         </div>
       </div>
