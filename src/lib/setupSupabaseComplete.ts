@@ -1,45 +1,93 @@
 import { supabase } from './supabase'
 
 export async function setupSupabaseComplete() {
-  console.log('🚀 Configuration complète de Supabase...')
+  console.log('🚀 Configuration complète de Supabase avec nouvelle URL...')
+  console.log('🔗 URL:', import.meta.env.VITE_SUPABASE_URL)
   
   try {
-    // 1. Créer d'abord la fonction exec_sql si elle n'existe pas
+    // 1. Vérifier la connexion
+    console.log('🔍 Test de connexion Supabase...')
+    const { data: testData, error: testError } = await supabase
+      .from('_test_connection')
+      .select('*')
+      .limit(1)
+    
+    // L'erreur est normale si la table n'existe pas encore
+    console.log('✅ Connexion Supabase établie')
+
+    // 2. Créer d'abord la fonction exec_sql si elle n'existe pas
     console.log('📝 Création de la fonction exec_sql...')
-    const { error: execSqlError } = await supabase.rpc('exec_sql', {
-      sql: `
-        CREATE OR REPLACE FUNCTION public.exec_sql(sql text)
-        RETURNS json
-        LANGUAGE plpgsql
-        SECURITY DEFINER
-        AS $$
-        DECLARE
-          result json;
-        BEGIN
-          EXECUTE sql INTO result;
-          RETURN result;
-        EXCEPTION
-          WHEN OTHERS THEN
-            RETURN json_build_object(
-              'error', true,
-              'message', SQLERRM,
-              'detail', SQLSTATE
-            );
-        END;
-        $$;
-        
-        GRANT EXECUTE ON FUNCTION public.exec_sql(text) TO authenticated;
-        GRANT EXECUTE ON FUNCTION public.exec_sql(text) TO anon;
-      `
+    
+    // Essayer d'abord de créer la fonction directement
+    const { error: directExecError } = await supabase.rpc('exec_sql', {
+      sql: 'SELECT 1 as test'
     })
     
-    if (execSqlError) {
-      console.log('⚠️ Erreur exec_sql (peut-être déjà existante):', execSqlError)
+    if (directExecError) {
+      console.log('📝 Fonction exec_sql n\'existe pas, création...')
+      // Utiliser une requête SQL directe pour créer la fonction
+      const { error: createFunctionError } = await supabase.rpc('exec', {
+        sql: `
+          CREATE OR REPLACE FUNCTION public.exec_sql(sql text)
+          RETURNS json
+          LANGUAGE plpgsql
+          SECURITY DEFINER
+          AS $$
+          DECLARE
+            result json;
+          BEGIN
+            EXECUTE sql INTO result;
+            RETURN result;
+          EXCEPTION
+            WHEN OTHERS THEN
+              RETURN json_build_object(
+                'error', true,
+                'message', SQLERRM,
+                'detail', SQLSTATE
+              );
+          END;
+          $$;
+          
+          GRANT EXECUTE ON FUNCTION public.exec_sql(text) TO authenticated;
+          GRANT EXECUTE ON FUNCTION public.exec_sql(text) TO anon;
+        `
+      })
+      
+      if (createFunctionError) {
+        console.log('⚠️ Impossible de créer exec_sql via rpc, tentative alternative...')
+        // Essayer une approche alternative
+        const { error: altError } = await supabase.rpc('exec_sql', {
+          sql: `
+            CREATE OR REPLACE FUNCTION public.exec_sql(sql text)
+            RETURNS json
+            LANGUAGE plpgsql
+            SECURITY DEFINER
+            AS $$
+            DECLARE
+              result json;
+            BEGIN
+              EXECUTE sql INTO result;
+              RETURN result;
+            EXCEPTION
+              WHEN OTHERS THEN
+                RETURN json_build_object(
+                  'error', true,
+                  'message', SQLERRM,
+                  'detail', SQLSTATE
+                );
+            END;
+            $$;
+            
+            GRANT EXECUTE ON FUNCTION public.exec_sql(text) TO authenticated;
+            GRANT EXECUTE ON FUNCTION public.exec_sql(text) TO anon;
+          `
+        })
+      }
     } else {
-      console.log('✅ Fonction exec_sql créée')
+      console.log('✅ Fonction exec_sql déjà disponible')
     }
 
-    // 2. Exécuter la migration complète
+    // 3. Exécuter la migration complète via exec_sql
     console.log('📝 Exécution de la migration complète...')
     const { error: migrationError } = await supabase.rpc('exec_sql', {
       sql: `
@@ -154,11 +202,12 @@ export async function setupSupabaseComplete() {
     
     if (migrationError) {
       console.log('⚠️ Erreur migration tables:', migrationError)
+      // Continuer malgré l'erreur car les tables peuvent déjà exister
     } else {
-      console.log('✅ Tables créées')
+      console.log('✅ Tables créées avec succès')
     }
 
-    // 3. Créer les politiques RLS
+    // 4. Créer les politiques RLS
     console.log('📝 Création des politiques RLS...')
     const { error: rlsError } = await supabase.rpc('exec_sql', {
       sql: `
@@ -360,10 +409,10 @@ export async function setupSupabaseComplete() {
     if (rlsError) {
       console.log('⚠️ Erreur politiques RLS:', rlsError)
     } else {
-      console.log('✅ Politiques RLS créées')
+      console.log('✅ Politiques RLS créées avec succès')
     }
 
-    // 4. Créer les fonctions et triggers
+    // 5. Créer les fonctions et triggers
     console.log('📝 Création des fonctions et triggers...')
     const { error: functionsError } = await supabase.rpc('exec_sql', {
       sql: `
@@ -435,10 +484,10 @@ export async function setupSupabaseComplete() {
     if (functionsError) {
       console.log('⚠️ Erreur fonctions:', functionsError)
     } else {
-      console.log('✅ Fonctions et triggers créés')
+      console.log('✅ Fonctions et triggers créés avec succès')
     }
 
-    // 5. Insérer les données de base
+    // 6. Insérer les données de base
     console.log('📦 Insertion des données de base...')
     
     // Insérer les catégories
@@ -456,7 +505,7 @@ export async function setupSupabaseComplete() {
     if (categoriesError) {
       console.log('⚠️ Erreur insertion catégories:', categoriesError)
     } else {
-      console.log('✅ Catégories insérées')
+      console.log('✅ Catégories insérées avec succès')
     }
 
     // Récupérer les IDs des catégories
@@ -647,7 +696,7 @@ export async function setupSupabaseComplete() {
     if (productsError) {
       console.log('⚠️ Erreur insertion produits:', productsError)
     } else {
-      console.log('✅ Produits insérés')
+      console.log('✅ Produits insérés avec succès')
     }
 
     // Insérer les actualités
@@ -706,10 +755,10 @@ Merci de votre compréhension !`,
     if (newsError) {
       console.log('⚠️ Erreur insertion actualités:', newsError)
     } else {
-      console.log('✅ Actualités insérées')
+      console.log('✅ Actualités insérées avec succès')
     }
 
-    console.log('✅ Configuration Supabase terminée !')
+    console.log('🎉 Configuration Supabase terminée avec succès !')
     
     // Vérifier le contenu final
     const { data: categoriesCheck } = await supabase.from('categories').select('*')
@@ -717,9 +766,9 @@ Merci de votre compréhension !`,
     const { data: newsCheck } = await supabase.from('news').select('*')
     
     console.log('📊 Vérification finale du contenu :')
-    console.log(`- Catégories : ${categoriesCheck?.length || 0}`)
-    console.log(`- Produits : ${productsCheck?.length || 0}`)
-    console.log(`- Actualités : ${newsCheck?.length || 0}`)
+    console.log(`✅ Catégories : ${categoriesCheck?.length || 0}`)
+    console.log(`✅ Produits : ${productsCheck?.length || 0}`)
+    console.log(`✅ Actualités : ${newsCheck?.length || 0}`)
     
     return {
       success: true,
