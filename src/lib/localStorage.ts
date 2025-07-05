@@ -541,6 +541,78 @@ const DEFAULT_USERS: User[] = [
     username: 'admin',
     role: 'admin',
     created_at: new Date().toISOString()
+  },
+  {
+    id: 'user-2',
+    email: 'marie.dupont@email.fr',
+    full_name: 'Marie Dupont',
+    username: 'marie.dupont',
+    role: 'user',
+    created_at: new Date(Date.now() - 86400000 * 30).toISOString() // Il y a 30 jours
+  },
+  {
+    id: 'user-3',
+    email: 'jean.martin@email.fr',
+    full_name: 'Jean Martin',
+    username: 'jean.martin',
+    role: 'user',
+    created_at: new Date(Date.now() - 86400000 * 25).toISOString() // Il y a 25 jours
+  },
+  {
+    id: 'user-4',
+    email: 'sophie.bernard@email.fr',
+    full_name: 'Sophie Bernard',
+    username: 'sophie.bernard',
+    role: 'user',
+    created_at: new Date(Date.now() - 86400000 * 20).toISOString() // Il y a 20 jours
+  },
+  {
+    id: 'user-5',
+    email: 'pierre.durand@email.fr',
+    full_name: 'Pierre Durand',
+    username: 'pierre.durand',
+    role: 'user',
+    created_at: new Date(Date.now() - 86400000 * 15).toISOString() // Il y a 15 jours
+  },
+  {
+    id: 'user-6',
+    email: 'claire.moreau@email.fr',
+    full_name: 'Claire Moreau',
+    username: 'claire.moreau',
+    role: 'user',
+    created_at: new Date(Date.now() - 86400000 * 10).toISOString() // Il y a 10 jours
+  },
+  {
+    id: 'user-7',
+    email: 'thomas.petit@email.fr',
+    full_name: 'Thomas Petit',
+    username: 'thomas.petit',
+    role: 'user',
+    created_at: new Date(Date.now() - 86400000 * 8).toISOString() // Il y a 8 jours
+  },
+  {
+    id: 'user-8',
+    email: 'isabelle.roux@email.fr',
+    full_name: 'Isabelle Roux',
+    username: 'isabelle.roux',
+    role: 'user',
+    created_at: new Date(Date.now() - 86400000 * 5).toISOString() // Il y a 5 jours
+  },
+  {
+    id: 'user-9',
+    email: 'nicolas.blanc@email.fr',
+    full_name: 'Nicolas Blanc',
+    username: 'nicolas.blanc',
+    role: 'user',
+    created_at: new Date(Date.now() - 86400000 * 3).toISOString() // Il y a 3 jours
+  },
+  {
+    id: 'user-10',
+    email: 'amelie.garcia@email.fr',
+    full_name: 'Amélie Garcia',
+    username: 'amelie.garcia',
+    role: 'user',
+    created_at: new Date(Date.now() - 86400000 * 1).toISOString() // Il y a 1 jour
   }
 ]
 
@@ -561,8 +633,222 @@ class LocalStorage {
       window.localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(DEFAULT_USERS))
     }
     if (!window.localStorage.getItem(STORAGE_KEYS.ORDERS)) {
-      window.localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify([]))
+      // Créer quelques commandes de démonstration
+      const demoOrders = this.createDemoOrders()
+      window.localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(demoOrders))
     }
+  }
+
+  // Créer des commandes de démonstration
+  private createDemoOrders(): Order[] {
+    const users = DEFAULT_USERS.filter(u => u.role === 'user')
+    const products = DEFAULT_PRODUCTS
+    const orders: Order[] = []
+
+    // Commande 1 - Marie Dupont (en attente)
+    const order1: Order = {
+      id: 'order-1',
+      user_id: 'user-2',
+      total_amount: 15.50,
+      status: 'pending',
+      payment_initiated_at: null,
+      payment_notified_at: null,
+      confirmed_at: null,
+      created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
+      order_items: [
+        {
+          id: 'item-1',
+          order_id: 'order-1',
+          product_id: 'prod-15',
+          quantity: 1,
+          unit_price: 12.50,
+          total_price: 12.50,
+          products: { name: 'Couscous royal' }
+        },
+        {
+          id: 'item-2',
+          order_id: 'order-1',
+          product_id: 'prod-1',
+          quantity: 6,
+          unit_price: 0.50,
+          total_price: 3.00,
+          products: { name: 'Bières haut de gamme' }
+        }
+      ],
+      profiles: { full_name: 'Marie Dupont', email: 'marie.dupont@email.fr' }
+    }
+
+    // Commande 2 - Jean Martin (paiement notifié)
+    const order2: Order = {
+      id: 'order-2',
+      user_id: 'user-3',
+      total_amount: 23.00,
+      status: 'payment_notified',
+      payment_initiated_at: new Date(Date.now() - 86400000 * 1).toISOString(),
+      payment_notified_at: new Date(Date.now() - 3600000 * 2).toISOString(),
+      confirmed_at: null,
+      created_at: new Date(Date.now() - 86400000 * 3).toISOString(),
+      order_items: [
+        {
+          id: 'item-3',
+          order_id: 'order-2',
+          product_id: 'prod-16',
+          quantity: 1,
+          unit_price: 11.00,
+          total_price: 11.00,
+          products: { name: 'Tajine de poulet' }
+        },
+        {
+          id: 'item-4',
+          order_id: 'order-2',
+          product_id: 'prod-21',
+          quantity: 2,
+          unit_price: 4.50,
+          total_price: 9.00,
+          products: { name: 'Harira' }
+        },
+        {
+          id: 'item-5',
+          order_id: 'order-2',
+          product_id: 'prod-4',
+          quantity: 1,
+          unit_price: 2.50,
+          total_price: 2.50,
+          products: { name: 'Thé à la menthe' }
+        },
+        {
+          id: 'item-6',
+          order_id: 'order-2',
+          product_id: 'prod-2',
+          quantity: 1,
+          unit_price: 0.50,
+          total_price: 0.50,
+          products: { name: 'Bières basiques' }
+        }
+      ],
+      profiles: { full_name: 'Jean Martin', email: 'jean.martin@email.fr' }
+    }
+
+    // Commande 3 - Sophie Bernard (confirmée)
+    const order3: Order = {
+      id: 'order-3',
+      user_id: 'user-4',
+      total_amount: 18.50,
+      status: 'confirmed',
+      payment_initiated_at: new Date(Date.now() - 86400000 * 5).toISOString(),
+      payment_notified_at: new Date(Date.now() - 86400000 * 4).toISOString(),
+      confirmed_at: new Date(Date.now() - 86400000 * 4).toISOString(),
+      created_at: new Date(Date.now() - 86400000 * 6).toISOString(),
+      order_items: [
+        {
+          id: 'item-7',
+          order_id: 'order-3',
+          product_id: 'prod-17',
+          quantity: 1,
+          unit_price: 9.50,
+          total_price: 9.50,
+          variant: 'Taille M',
+          products: { name: 'Pastilla au poisson' }
+        },
+        {
+          id: 'item-8',
+          order_id: 'order-3',
+          product_id: 'prod-22',
+          quantity: 1,
+          unit_price: 5.00,
+          total_price: 5.00,
+          products: { name: 'Salade marocaine' }
+        },
+        {
+          id: 'item-9',
+          order_id: 'order-3',
+          product_id: 'prod-2',
+          quantity: 8,
+          unit_price: 0.50,
+          total_price: 4.00,
+          products: { name: 'Bières basiques' }
+        }
+      ],
+      profiles: { full_name: 'Sophie Bernard', email: 'sophie.bernard@email.fr' }
+    }
+
+    // Commande 4 - Pierre Durand (en attente)
+    const order4: Order = {
+      id: 'order-4',
+      user_id: 'user-5',
+      total_amount: 8.50,
+      status: 'pending',
+      payment_initiated_at: null,
+      payment_notified_at: null,
+      confirmed_at: null,
+      created_at: new Date(Date.now() - 86400000 * 1).toISOString(),
+      order_items: [
+        {
+          id: 'item-10',
+          order_id: 'order-4',
+          product_id: 'prod-7',
+          quantity: 4,
+          unit_price: 0.50,
+          total_price: 2.00,
+          products: { name: 'Chips' }
+        },
+        {
+          id: 'item-11',
+          order_id: 'order-4',
+          product_id: 'prod-27',
+          quantity: 1,
+          unit_price: 5.50,
+          total_price: 5.50,
+          products: { name: 'Chebakia' }
+        },
+        {
+          id: 'item-12',
+          order_id: 'order-4',
+          product_id: 'prod-3',
+          quantity: 2,
+          unit_price: 0.50,
+          total_price: 1.00,
+          products: { name: 'Soft' }
+        }
+      ],
+      profiles: { full_name: 'Pierre Durand', email: 'pierre.durand@email.fr' }
+    }
+
+    // Commande 5 - Thomas Petit (paiement notifié)
+    const order5: Order = {
+      id: 'order-5',
+      user_id: 'user-7',
+      total_amount: 14.00,
+      status: 'payment_notified',
+      payment_initiated_at: new Date(Date.now() - 3600000 * 6).toISOString(),
+      payment_notified_at: new Date(Date.now() - 3600000 * 1).toISOString(),
+      confirmed_at: null,
+      created_at: new Date(Date.now() - 3600000 * 8).toISOString(),
+      order_items: [
+        {
+          id: 'item-13',
+          order_id: 'order-5',
+          product_id: 'prod-26',
+          quantity: 2,
+          unit_price: 6.00,
+          total_price: 12.00,
+          products: { name: 'Cornes de gazelle' }
+        },
+        {
+          id: 'item-14',
+          order_id: 'order-5',
+          product_id: 'prod-4',
+          quantity: 1,
+          unit_price: 2.00,
+          total_price: 2.00,
+          products: { name: 'Café marocain' }
+        }
+      ],
+      profiles: { full_name: 'Thomas Petit', email: 'thomas.petit@email.fr' }
+    }
+
+    orders.push(order1, order2, order3, order4, order5)
+    return orders
   }
 
   // Méthodes génériques
