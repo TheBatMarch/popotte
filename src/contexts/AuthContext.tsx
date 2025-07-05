@@ -71,7 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const changePassword = async (currentPassword: string, newPassword: string) => {
+  const changePassword = async (_currentPassword: string, newPassword: string) => {
     // Pour la démo, on simule juste le changement de mot de passe
     // En production, il faudrait vérifier l'ancien mot de passe
     return Promise.resolve()
