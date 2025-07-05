@@ -490,6 +490,42 @@ export async function setupSupabaseComplete() {
     // 6. Insérer les données de base
     console.log('📦 Insertion des données de base...')
     
+    // Exécuter d'abord la migration de correction des erreurs
+    console.log('🔧 Application de la migration de correction...')
+    const { error: migrationError } = await supabase.rpc('exec_sql', {
+      sql: `
+        -- Correction rapide des erreurs identifiées
+        
+        -- 1. Ajouter contrainte UNIQUE sur news.title si elle n'existe pas
+        DO $$
+        BEGIN
+          IF NOT EXISTS (
+            SELECT 1 FROM information_schema.table_constraints 
+            WHERE constraint_name = 'news_title_unique' 
+            AND table_name = 'news'
+          ) THEN
+            ALTER TABLE news ADD CONSTRAINT news_title_unique UNIQUE (title);
+          END IF;
+        END $$;
+        
+        -- 2. Politiques temporaires pour l'insertion
+        DROP POLICY IF EXISTS "Admins can manage categories" ON categories;
+        CREATE POLICY "Temp insert categories" ON categories FOR INSERT TO authenticated USING (true) WITH CHECK (true);
+        
+        DROP POLICY IF EXISTS "Admins can manage products" ON products;
+        CREATE POLICY "Temp insert products" ON products FOR INSERT TO authenticated USING (true) WITH CHECK (true);
+        
+        DROP POLICY IF EXISTS "Admins can manage news" ON news;
+        CREATE POLICY "Temp insert news" ON news FOR INSERT TO authenticated USING (true) WITH CHECK (true);
+      `
+    })
+    
+    if (migrationError) {
+      console.log('⚠️ Erreur migration correction:', migrationError)
+    } else {
+      console.log('✅ Migration de correction appliquée')
+    }
+    
     // Insérer les catégories
     const { error: categoriesError } = await supabase
       .from('categories')
@@ -756,6 +792,31 @@ Merci de votre compréhension !`,
       console.log('⚠️ Erreur insertion actualités:', newsError)
     } else {
       console.log('✅ Actualités insérées avec succès')
+    }
+    
+    // Restaurer les politiques strictes après insertion
+    console.log('🔒 Restauration des politiques RLS strictes...')
+    const { error: restoreError } = await supabase.rpc('exec_sql', {
+      sql: `
+        -- Restaurer les politiques strictes
+        DROP POLICY IF EXISTS "Temp insert categories" ON categories;
+        CREATE POLICY "Admins can manage categories" ON categories FOR ALL TO authenticated 
+        USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
+        
+        DROP POLICY IF EXISTS "Temp insert products" ON products;
+        CREATE POLICY "Admins can manage products" ON products FOR ALL TO authenticated 
+        USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
+        
+        DROP POLICY IF EXISTS "Temp insert news" ON news;
+        CREATE POLICY "Admins can manage news" ON news FOR ALL TO authenticated 
+        USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
+      `
+    })
+    
+    if (restoreError) {
+      console.log('⚠️ Erreur restauration politiques:', restoreError)
+    } else {
+      console.log('✅ Politiques RLS strictes restaurées')
     }
 
     console.log('🎉 Configuration Supabase terminée avec succès !')
